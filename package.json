@@ -1,0 +1,31 @@
+{
+  "name": "ya-gui",
+  "version": "0.0.1-alpha.0",
+  "description": "A GUI tool for ya framework",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/q13/ya-gui.git"
+  },
+  "dependencies": {
+    "react": "16.4.2",
+    "react-dom": "16.4.2",
+    "react-uwp": "^1.2.1"
+  },
+  "window": {
+    "icon": "src/deps/13.png"
+  },
+  "keywords": [
+    "GUI",
+    "ya"
+  ],
+  "author": "13",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/q13/ya-gui/issues"
+  },
+  "homepage": "https://github.com/q13/ya-gui#readme"
+}

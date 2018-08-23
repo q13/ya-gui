@@ -1,0 +1,32 @@
+{
+  "env": {
+    "browser": true,
+    "node": true,
+    "es6": true
+  },
+  "extends": [
+    "standard",
+    "plugin:vue/essential"
+  ],
+  "globals": {
+    "$": true,
+    "jQuery": true,
+    "_": true,
+    "R": true,
+    "Vue": true,
+    "require": true,
+    "nw": true
+  },
+  "rules": {
+    "no-new": 0, // 可以直接使用new关键字
+    "semi": 0, //关闭分号约束
+    "space-before-function-paren": [
+      "error",
+      {
+        "anonymous": "always",
+        "named": "ignore", // 关闭命名函数名后空格
+        "asyncArrow": "always"
+      }
+    ]
+  }
+}

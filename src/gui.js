@@ -6,16 +6,20 @@ const {
   ReactDOM,
   e,
   Theme,
-  getTheme
+  getTheme,
+  enableDevMode
 } = require('./deps/env');
 const main = require('./panes/main');
+
+const win = nw.Window.get();
+enableDevMode(win);
 
 class App extends React.Component {
   render() {
     return e(Theme, {
       theme: getTheme({
         useInlineStyle: true,
-        accent: '#0078D7', // set accent color
+        // accent: '#0078D7', // set accent color
         useFluentDesign: true
       })
     }, e(main.Pane));

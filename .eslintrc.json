@@ -15,7 +15,8 @@
     "R": true,
     "Vue": true,
     "require": true,
-    "nw": true
+    "nw": true,
+    "process": true
   },
   "rules": {
     "no-new": 0, // 可以直接使用new关键字

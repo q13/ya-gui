@@ -1,0 +1,11 @@
+/**
+ * Global style
+ */
+@import '../../node_modules/antd/dist/antd.min.css';
+@import '../../node_modules/xterm/dist/xterm.css';
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}

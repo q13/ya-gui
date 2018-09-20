@@ -4,9 +4,11 @@
 const React = require('react');
 const e = React.createElement;
 const ReactDOM = require('react-dom');
-const { Theme, getTheme } = require('react-uwp/Theme');
+const { LocaleProvider } = require('antd');
 const Gaze = require('gaze').Gaze;
 const path = require('path');
+
+const zhCN = require('antd/lib/locale-provider/zh_CN');
 
 const enableDevMode = function (frontWin) {
   // 监控文件改变重新reload
@@ -17,11 +19,10 @@ const enableDevMode = function (frontWin) {
       cwd: path.resolve(__dirname, '../../src')
     });
     gaze.on('all', function (event, filepath) {
-      // win.reloadDev();
+      for (let i in require.cache) {
+        delete require.cache[i]; // Delete cache
+      }
       frontWin.reloadIgnoringCache();
-      // if (location) {
-      //   location.reload();
-      // }
     });
   }
 };
@@ -30,7 +31,11 @@ module.exports = {
   React,
   ReactDOM,
   e,
-  Theme,
-  getTheme,
-  enableDevMode
+  LocaleProvider: (props) => {
+    return e(LocaleProvider, {
+      locale: zhCN
+    }, props.children);
+  },
+  enableDevMode,
+  yaCommand: path.resolve(__dirname, '../../node_modules/ya-driver/bin/ya.js')
 };

@@ -255,6 +255,17 @@ class Pane extends React.Component {
                   deployStatus: '',
                   buildStatus: ''
                 });
+                // 尝试终止driver
+                ['deploy', 'build'].forEach((type) => {
+                  const driver = this[`${type}Driver`];
+                  if (driver) {
+                    terminate(driver.pid, function (err) {
+                      if (err) { // you will get an error if you did not supply a valid process.pid
+                        console.log('Oopsy: ' + err); // handle errors in your preferred way.
+                      }
+                    });
+                  }
+                });
               }
             }, 'Kill')
           ])

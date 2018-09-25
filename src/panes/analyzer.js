@@ -34,7 +34,7 @@ class Pane extends React.Component {
         e('iframe', {
           src: `http://127.0.0.1:8888`,
           ref: 'frame',
-          frameborder: 0,
+          frameBorder: 0,
           scrolling: 'no',
           style: {
             width: '100%',

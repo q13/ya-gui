@@ -63,3 +63,4 @@ typings/
 # project
 .history/
 dist/
+package-lock.json

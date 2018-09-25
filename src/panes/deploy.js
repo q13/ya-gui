@@ -278,13 +278,13 @@ class Pane extends React.Component {
       type: dev ? 'menubar' : 'contextmenu'
     });
     menu.append(new nw.MenuItem({
-      label: 'Open deploy logger',
+      label: 'Open deploy log',
       click: () => {
         this.deploy.showDevTools(true);
       }
     }));
     menu.append(new nw.MenuItem({
-      label: 'Open build logger',
+      label: 'Open build log',
       click: () => {
         this.build.showDevTools(true);
       }

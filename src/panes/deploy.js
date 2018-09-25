@@ -98,7 +98,8 @@ class Pane extends React.Component {
         description: ''
       },
       deployStatus: '', // doing, success, error
-      buildStatus: ''
+      buildStatus: '',
+      accStatus: ''
     };
   }
   shouldComponentUpdate(nextProps, nextState) {
@@ -212,6 +213,14 @@ class Pane extends React.Component {
         }
       }),
       e('div', {
+        id: 'acc-container',
+        style: {
+          position: 'absolute',
+          top: '-10000px',
+          left: '-10000px'
+        }
+      }),
+      e('div', {
         style: {
           position: 'absolute',
           bottom: '0',
@@ -230,6 +239,16 @@ class Pane extends React.Component {
         }, ...[
           e(Col, {
           }, ...[
+            e(Button, {
+              type: 'primary',
+              loading: state.accStatus === 'doing',
+              onClick: () => {
+                this.handleDriver('acc');
+              },
+              style: {
+                marginRight: '8px'
+              }
+            }, 'Accelerate'),
             e(Button, {
               type: 'primary',
               loading: state.deployStatus === 'doing',
@@ -253,10 +272,11 @@ class Pane extends React.Component {
               onClick: () => {
                 this.setState({
                   deployStatus: '',
-                  buildStatus: ''
+                  buildStatus: '',
+                  accStatus: ''
                 });
                 // 尝试终止driver
-                ['deploy', 'build'].forEach((type) => {
+                ['deploy', 'build', 'acc'].forEach((type) => {
                   const driver = this[`${type}Driver`];
                   if (driver) {
                     terminate(driver.pid, function (err) {
@@ -276,12 +296,16 @@ class Pane extends React.Component {
   initLogger() {
     const deployPath = path.resolve(__dirname, '../deploy.html');
     const buildPath = path.resolve(__dirname, '../build.html');
+    const accPath = path.resolve(__dirname, '../acc.html');
     document.getElementById('deploy-container').innerHTML = `<webview id="deploy" src="file:///${deployPath}" partition="trusted"></webview>`;
     document.getElementById('build-container').innerHTML = `<webview id="build" src="file:///${buildPath}" partition="trusted"></webview>`;
+    document.getElementById('acc-container').innerHTML = `<webview id="acc" src="file:///${accPath}" partition="trusted"></webview>`;
     const deploy = document.getElementById('deploy');
     const build = document.getElementById('build');
+    const acc = document.getElementById('acc');
     this.deploy = deploy;
     this.build = build;
+    this.acc = acc;
   }
   initMenu() {
     const dev = isDev();
@@ -298,6 +322,12 @@ class Pane extends React.Component {
       label: 'Open build log',
       click: () => {
         this.build.showDevTools(true);
+      }
+    }));
+    menu.append(new nw.MenuItem({
+      label: 'Open accelerate log',
+      click: () => {
+        this.acc.showDevTools(true);
       }
     }));
     if (dev) {
@@ -333,10 +363,8 @@ class Pane extends React.Component {
           }
         });
       }
+      // Auto open dev tools
       logger.showDevTools(true);
-      // const runDriver = exec(`node ${yaCommand} serve ${this.projectPath}`, {
-      //   async: true
-      // });
       this.setState({
         [`${type}Status`]: 'doing'
       });
@@ -347,6 +375,11 @@ class Pane extends React.Component {
         });
       } else if (type === 'build') {
         driver = spawn('node', [yaCommand, 'build', this.projectPath, '--app-env', 'local'], {
+          // silent: true
+          stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]
+        });
+      } else if (type === 'acc') {
+        driver = spawn('node', [yaCommand, 'acc', this.projectPath], {
           // silent: true
           stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]
         });
@@ -393,7 +426,7 @@ class Pane extends React.Component {
   }
   get pkgActionDisabled() {
     const state = this.state;
-    return state.deployStatus === 'doing' || state.buildStatus === 'doing';
+    return state.deployStatus === 'doing' || state.buildStatus === 'doing' || state.accStatus === 'doing';
   }
 }
 

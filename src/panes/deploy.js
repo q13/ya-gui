@@ -269,11 +269,6 @@ class Pane extends React.Component {
     document.getElementById('build-container').innerHTML = `<webview id="build" src="file:///${buildPath}" partition="trusted"></webview>`;
     const deploy = document.getElementById('deploy');
     const build = document.getElementById('build');
-    // setTimeout(() => {
-    //   deploy.showDevTools(true)
-    // }, 2000);
-    // logger.addEventListener('load', () => {
-    // });
     this.deploy = deploy;
     this.build = build;
   }

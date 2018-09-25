@@ -18,13 +18,14 @@ class Pane extends React.Component {
     this.handleMenuClick = this.handleMenuClick.bind(this);
   }
   render() {
+    const props = this.props;
     return e(Menu, {
       mode: 'inline',
       theme: 'dark',
       style: {
         height: '100vh'
       },
-      defaultSelectedKeys: ['deploy'],
+      selectedKeys: [props.selectedKey],
       onClick: this.handleMenuClick
     }, [
       e(MenuItem, {

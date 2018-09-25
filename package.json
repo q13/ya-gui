@@ -4,24 +4,22 @@
   "description": "A GUI tool for ya framework",
   "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dist": "build --tasks win-x64 --mirror https://dl.nwjs.io/ ."
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/q13/ya-gui.git"
   },
   "dependencies": {
-    "antd": "^3.9.2",
-    "fs-extra": "^7.0.0",
-    "gaze": "^1.1.3",
-    "moment": "^2.22.2",
+    "antd": "3.9.2",
+    "fs-extra": "7.0.0",
+    "gaze": "1.1.3",
+    "lodash": "4.17.11",
+    "moment": "2.22.2",
     "react": "16.4.2",
     "react-dom": "16.4.2",
-    "react-uwp": "^1.2.1",
-    "shelljs": "^0.8.2",
-    "terminate": "^2.1.0",
-    "xterm": "^3.7.0",
-    "ya-driver": "*"
+    "terminate": "2.1.0",
+    "ya-driver": "^0.0.1-alpha.0"
   },
   "keywords": [
     "GUI",
@@ -36,5 +34,22 @@
   "chromium-args": "--mixed-context",
   "window": {
     "icon": "src/deps/13.png"
+  },
+  "build": {
+    "nwVersion": "0.33.3",
+    "nwFlavor": "sdk"
+  },
+  "devDependencies": {
+    "nwjs-builder-phoenix": "^1.14.8"
+  },
+  "webview": {
+    "partitions": [
+      {
+        "name": "trusted",
+        "accessible_resources": [
+          "<all_urls>"
+        ]
+      }
+    ]
   }
 }

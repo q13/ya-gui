@@ -4,14 +4,11 @@
 const {
   React,
   e,
-  yaCommand
+  yaCommand,
+  isDev
 } = require('../deps/env');
+const { spawn } = require('child_process');
 const {
-  exec
-} = require('shelljs');
-const {
-  Menu,
-  Icon,
   Upload,
   Button,
   Row,
@@ -20,21 +17,21 @@ const {
   Form,
   Input
 } = require('antd');
+const {
+  capitalize
+} = require('lodash');
 const path = require('path');
 const fsExtra = require('fs-extra');
 const terminate = require('terminate');
-const {
-  Terminal
-} = require('xterm');
-
-const fit = require('xterm/lib/addons/fit/fit');
-Terminal.applyAddon(fit); // Apply the `fit` addon
 
 const FormItem = Form.Item;
 const { TextArea } = Input;
 
 class PkgForm extends React.Component {
   render() {
+    const {
+      pkgActionDisabled
+    } = this.props;
     const { getFieldDecorator } = this.props.form;
     // console.log(this.props.form.setFieldsValue);
     const formItemLayout = {
@@ -84,7 +81,8 @@ class PkgForm extends React.Component {
         }
       }, e(Button, {
         type: 'primary',
-        htmlType: 'submit'
+        htmlType: 'submit',
+        disabled: pkgActionDisabled
       }, 'Save'))
     ]);
   }
@@ -98,7 +96,9 @@ class Pane extends React.Component {
       pkgFields: {
         name: '',
         description: ''
-      }
+      },
+      deployStatus: '', // doing, success, error
+      buildStatus: ''
     };
   }
   shouldComponentUpdate(nextProps, nextState) {
@@ -108,15 +108,13 @@ class Pane extends React.Component {
     return true;
   }
   componentDidMount() {
-    const xterm = new Terminal({
-    });
-    xterm.open(document.getElementById('terminal'));
-    xterm.fit();
-    this.terminal = xterm;
+    this.initLogger();
+    this.initMenu();
   }
   render() {
     const state = this.state;
     const pkgFields = state.pkgFields;
+    const pkgActionDisabled = this.pkgActionDisabled;
     const {
       pkgFilePath
     } = state;
@@ -152,7 +150,9 @@ class Pane extends React.Component {
               });
             }
           }
-        }, e(Button, {}, 'Select package.json'))),
+        }, e(Button, {
+          disabled: pkgActionDisabled
+        }, 'Select package.json'))),
         e(Col, {
           style: {
             marginLeft: '8px'
@@ -166,6 +166,7 @@ class Pane extends React.Component {
         }
       }, e(Form.create({
       })(PkgForm), {
+        pkgActionDisabled,
         onSubmit: (values) => {
           const {
             pkgFilePath
@@ -195,56 +196,185 @@ class Pane extends React.Component {
         }
       })),
       e('div', {
-        id: 'terminal',
+        id: 'deploy-container',
         style: {
-          height: '220px'
+          position: 'absolute',
+          top: '-10000px',
+          left: '-10000px'
+        }
+      }),
+      e('div', {
+        id: 'build-container',
+        style: {
+          position: 'absolute',
+          top: '-10000px',
+          left: '-10000px'
         }
       }),
       e('div', {
         style: {
           position: 'absolute',
           bottom: '0',
-          left: '0'
+          left: '0',
+          width: '100%'
         }
       }, ...[ // footer
-        e(Button, {
-          type: 'primary',
-          onClick: () => {
-            if (this.childProcess) {
-              // this.childProcess.kill('SIGHUP'); // 先干掉
-              // this.childProcess.kill('SIGSTOP'); // 先干掉
-              // this.childProcess.kill('SIGCHLD'); // 先干掉
-              console.log('pid', this.childProcess.pid);
-              console.log('kill');
-              // this.childProcess.kill('SIGINT');
-              terminate(this.childProcess.pid, function (err) {
-                if (err) { // you will get an error if you did not supply a valid process.pid
-                  console.log('Oopsy: ' + err); // handle errors in your preferred way.
-                }
-                else {
-                  console.log('done'); // terminating the Processes succeeded.
-                }
-              });
-
-              // process.kill(this.childProcess.pid);
-            }
-            const childProcess = exec(`node ${yaCommand} serve ${this.projectPath}`, {
-              async: true
-            });
-            childProcess.stdout.on('data', (data) => {
-              /* ... do something with data ... */
-              console.log(data);
-              this.terminal.write(data);
-            });
-            childProcess.stderr.on('data', function (data) {
-              /* ... do something with data ... */
-              console.log(data);
-            });
-            this.childProcess = childProcess;
+        e('div', {
+          style: {
+            marginBottom: '8px'
           }
-        }, 'Deploy')
+        }, 'For Deploy & build log output, please click context menu choose relevant item.'),
+        e(Row, {
+          type: 'flex',
+          justify: 'space-between'
+        }, ...[
+          e(Col, {
+          }, ...[
+            e(Button, {
+              type: 'primary',
+              loading: state.deployStatus === 'doing',
+              onClick: () => {
+                this.handleDriver('deploy');
+              },
+              style: {
+                marginRight: '8px'
+              }
+            }, 'Deploy'),
+            e(Button, {
+              type: 'primary',
+              loading: state.buildStatus === 'doing',
+              onClick: () => {
+                this.handleDriver('build');
+              }
+            }, 'Build test')
+          ]),
+          e(Col, {}, ...[
+            e(Button, {
+              onClick: () => {
+                this.setState({
+                  deployStatus: '',
+                  buildStatus: ''
+                });
+              }
+            }, 'Kill')
+          ])
+        ])
       ])
     ]);
+  }
+  initLogger() {
+    const deployPath = path.resolve(__dirname, '../deploy.html');
+    const buildPath = path.resolve(__dirname, '../build.html');
+    document.getElementById('deploy-container').innerHTML = `<webview id="deploy" src="file:///${deployPath}" partition="trusted"></webview>`;
+    document.getElementById('build-container').innerHTML = `<webview id="build" src="file:///${buildPath}" partition="trusted"></webview>`;
+    const deploy = document.getElementById('deploy');
+    const build = document.getElementById('build');
+    // setTimeout(() => {
+    //   deploy.showDevTools(true)
+    // }, 2000);
+    // logger.addEventListener('load', () => {
+    // });
+    this.deploy = deploy;
+    this.build = build;
+  }
+  initMenu() {
+    const dev = isDev();
+    const menu = new nw.Menu({
+      type: dev ? 'menubar' : 'contextmenu'
+    });
+    menu.append(new nw.MenuItem({
+      label: 'Open deploy logger',
+      click: () => {
+        this.deploy.showDevTools(true);
+      }
+    }));
+    menu.append(new nw.MenuItem({
+      label: 'Open build logger',
+      click: () => {
+        this.build.showDevTools(true);
+      }
+    }));
+    if (dev) {
+      nw.Window.get().menu = menu;
+    } else {
+      document.body.addEventListener('contextmenu', function (evt) {
+        evt.preventDefault();
+        menu.popup(evt.x, evt.y);
+      });
+    }
+    this.menu = menu;
+  }
+  /**
+   * Handle driver run
+   * @param {String} type - deploy & build
+   */
+  handleDriver(type) {
+    const logger = this[type];
+    let driver = this[`${type}Driver`];
+    const state = this.state;
+    const driverStatus = state[`${type}Status`];
+    if (!this.projectPath) {
+      message.error(`Please choose a package.json first`);
+      return;
+    }
+    if (driverStatus === 'doing') {
+      message.error(`${capitalize(type)} is running, please waiting`);
+    } else {
+      if (driver) {
+        terminate(driver.pid, function (err) {
+          if (err) { // you will get an error if you did not supply a valid process.pid
+            console.log('Oopsy: ' + err); // handle errors in your preferred way.
+          }
+        });
+      }
+      logger.showDevTools(true);
+      // const runDriver = exec(`node ${yaCommand} serve ${this.projectPath}`, {
+      //   async: true
+      // });
+      this.setState({
+        [`${type}Status`]: 'doing'
+      });
+      if (type === 'deploy') {
+        driver = spawn('node', [yaCommand, 'serve', this.projectPath], {
+          // silent: true
+          stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]
+        });
+      } else if (type === 'build') {
+        driver = spawn('node', [yaCommand, 'build', this.projectPath, '--app-env', 'local'], {
+          // silent: true
+          stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]
+        });
+      }
+      driver.on('message', (data) => {
+        if (data.action === 'compiled') {
+          this.setState({
+            [`${type}Status`]: 'success'
+          });
+          if (type === 'build') {
+            this.props.onPanePipe({
+              action: 'analyzerCompleted'
+            });
+          }
+        }
+      });
+      driver.stdout.on('data', (data) => {
+        /* ... do something with data ... */
+        logger.executeScript({
+          code: `console.log(\`${escapeLogMessage(data)}\`)`
+        });
+      });
+      driver.stderr.on('data', (data) => {
+        /* ... do something with data ... */
+        // TODO: 不能区分中断是否影响到compile正常进行，暂时加延时kill
+        // this.setState({
+        //   [`${type}Status`]: 'error'
+        // });
+        logger.executeScript({
+          code: `console.log(\`${escapeLogMessage(data)}\`)`
+        });
+      });
+      this[`${type}Driver`] = driver;
+    }
   }
   get projectPath() {
     const state = this.state;
@@ -255,5 +385,16 @@ class Pane extends React.Component {
       return '';
     }
   }
+  get pkgActionDisabled() {
+    const state = this.state;
+    return state.deployStatus === 'doing' || state.buildStatus === 'doing';
+  }
+}
+
+/**
+ * Escape log message
+ */
+function escapeLogMessage(data) {
+  return data.toString('utf8').replace(/\\/g, '\\\\').replace(/`/g, '\\`');
 }
 exports.Pane = Pane;

@@ -6,9 +6,6 @@ const {
   e
 } = require('../deps/env');
 const {
-  Icon,
-  Upload,
-  Button,
   Row,
   Col
 } = require('antd');
@@ -16,13 +13,6 @@ const {
   Pane: Sidebar
 } = require('./sidebar');
 
-/**
- * 获取pane constructor
- * @param {String} name - pane name
- */
-const getMainPane = (name) => {
-  return require(`./${name}.js`).Pane;
-};
 class Pane extends React.Component {
   constructor(props) {
     super(props);
@@ -41,24 +31,18 @@ class Pane extends React.Component {
   render() {
     const state = this.state;
     const panes = state.panes;
+    const selectedKey = state.panes.find((item) => {
+      return item.isActive;
+    }).key;
     return e(Row, {
       type: 'flex'
     }, ...[
       e(Col, {
         span: 4
       }, e(Sidebar, {
+        selectedKey,
         onMenuClick: (paneName) => {
-          this.setState((state) => {
-            return {
-              ...state,
-              panes: state.panes.map((item) => {
-                return {
-                  ...item,
-                  isActive: paneName === item.key
-                };
-              })
-            };
-          });
+          this.activePane(paneName);
         }
       })),
       e(Col, {
@@ -73,9 +57,28 @@ class Pane extends React.Component {
             display: pane.isActive ? 'block' : 'none',
             height: '100%'
           }
-        }, e(pane.Pane));
+        }, e(pane.Pane, {
+          onPanePipe: ({ action }) => {
+            if (action === 'analyzerCompleted') {
+              this.activePane('analyzer');
+            }
+          }
+        }));
       }))
     ]);
+  }
+  activePane(paneName) {
+    this.setState((state) => {
+      return {
+        ...state,
+        panes: state.panes.map((item) => {
+          return {
+            ...item,
+            isActive: paneName === item.key
+          };
+        })
+      };
+    });
   }
 }
 

@@ -43,6 +43,6 @@ module.exports = {
     }, props.children);
   },
   enableDevMode,
-  yaCommand: path.resolve(__dirname, '../../node_modules/ya-driver/bin/ya.js'),
+  yaCommand: path.resolve(__dirname, '../../node_modules/ya-driver/bin/ya2.js'),
   isDev
 };

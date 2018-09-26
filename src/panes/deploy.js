@@ -232,7 +232,7 @@ class Pane extends React.Component {
           style: {
             marginBottom: '8px'
           }
-        }, 'For Deploy & build log output, please click context menu choose relevant item.'),
+        }, 'For Below log output, please click context menu choose relevant item.'),
         e(Row, {
           type: 'flex',
           justify: 'space-between'

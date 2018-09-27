@@ -53,6 +53,15 @@ class PkgForm extends React.Component {
       })(e(Input))),
       e(FormItem, {
         ...formItemLayout,
+        label: 'Version'
+      }, getFieldDecorator('version', {
+        rules: [{
+          required: true,
+          message: 'Please input the project version'
+        }]
+      })(e(Input))),
+      e(FormItem, {
+        ...formItemLayout,
         label: 'Description'
       }, getFieldDecorator('description', {
         rules: [{

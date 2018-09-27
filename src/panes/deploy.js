@@ -34,6 +34,7 @@ class Pane extends React.Component {
       pkgFilePath: '',
       pkgFields: {
         name: '',
+        version: '',
         description: ''
       },
       deployStatus: '', // doing, success, error
@@ -292,6 +293,7 @@ class Pane extends React.Component {
       filePath = '';
       pkgJson = {
         name: '',
+        version: '',
         description: ''
       };
     }
@@ -299,6 +301,7 @@ class Pane extends React.Component {
       pkgFilePath: filePath,
       pkgFields: {
         name: pkgJson.name,
+        version: pkgJson.version,
         description: pkgJson.description
       }
     });

@@ -139,6 +139,7 @@ class Pane extends React.Component {
                     if (this.form) {
                       this.form.setFieldsValue({
                         name: '',
+                        version: '',
                         description: ''
                       });
                     }

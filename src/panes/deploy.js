@@ -5,7 +5,9 @@ const {
   React,
   e,
   yaCommand,
-  isDev
+  isDev,
+  escapeLogMessage,
+  profilePath
 } = require('../deps/env');
 const { spawn } = require('child_process');
 const {
@@ -13,9 +15,7 @@ const {
   Button,
   Row,
   Col,
-  message,
-  Form,
-  Input
+  message
 } = require('antd');
 const {
   capitalize
@@ -23,70 +23,9 @@ const {
 const path = require('path');
 const fsExtra = require('fs-extra');
 const terminate = require('terminate');
-
-const FormItem = Form.Item;
-const { TextArea } = Input;
-
-class PkgForm extends React.Component {
-  render() {
-    const {
-      pkgActionDisabled
-    } = this.props;
-    const { getFieldDecorator } = this.props.form;
-    // console.log(this.props.form.setFieldsValue);
-    const formItemLayout = {
-      labelCol: {
-        xs: { span: 4 },
-        sm: { span: 4 }
-      },
-      wrapperCol: {
-        xs: { span: 20 },
-        sm: { span: 20 }
-      }
-    };
-    return e(Form, {
-      onSubmit: (evt) => {
-        evt.preventDefault();
-        this.props.form.validateFieldsAndScroll((err, values) => {
-          if (!err) {
-            console.log('Received values of form: ', values);
-            this.props.onSubmit(values);
-          }
-        });
-      }
-    }, ...[
-      e(FormItem, {
-        ...formItemLayout,
-        label: 'Name'
-      }, getFieldDecorator('name', {
-        rules: [{
-          required: true,
-          message: 'Please input the project name'
-        }]
-      })(e(Input))),
-      e(FormItem, {
-        ...formItemLayout,
-        label: 'Description'
-      }, getFieldDecorator('description', {
-        rules: [{
-          required: true,
-          message: 'Please input the project description'
-        }]
-      })(e(TextArea, {
-        rows: 4
-      }))),
-      e(FormItem, {
-        style: {
-          textAlign: 'right'
-        }
-      }, e(Button, {
-        type: 'primary',
-        htmlType: 'submit',
-        disabled: pkgActionDisabled
-      }, 'Save'))
-    ]);
-  }
-}
+const {
+  Comp: PkgForm
+} = require('../modules/pkg-form');
 
 class Pane extends React.Component {
   constructor(props) {
@@ -111,6 +50,10 @@ class Pane extends React.Component {
   componentDidMount() {
     this.initLogger();
     this.initMenu();
+    const profile = fsExtra.readJsonSync(profilePath, { throws: false }) || {};
+    if (profile.lastPkgPath) {
+      this.setPkgJson(profile.lastPkgPath);
+    }
   }
   render() {
     const state = this.state;
@@ -141,13 +84,14 @@ class Pane extends React.Component {
             if (basename !== 'package.json') {
               message.error('You need select a package.json file in project');
             } else {
-              const pkgJson = fsExtra.readJsonSync(filePath);
-              this.setState({
-                pkgFilePath: filePath,
-                pkgFields: {
-                  name: pkgJson.name,
-                  description: pkgJson.description
-                }
+              this.setPkgJson(filePath);
+              // Save the last package.json path
+              const profile = fsExtra.readJsonSync(profilePath, { throws: false }) || {};
+              fsExtra.writeJsonSync(profilePath, {
+                ...profile,
+                lastPkgPath: filePath
+              }, {
+                spaces: 2
               });
             }
           }
@@ -156,7 +100,9 @@ class Pane extends React.Component {
         }, 'Select package.json'))),
         e(Col, {
           style: {
-            marginLeft: '8px'
+            marginLeft: '8px',
+            fontStyle: 'italic',
+            color: '#262626'
           }
         }, pkgFilePath)
       ]),
@@ -165,8 +111,7 @@ class Pane extends React.Component {
           paddingRight: '32px',
           marginTop: '16px'
         }
-      }, e(Form.create({
-      })(PkgForm), {
+      }, e(PkgForm, {
         pkgActionDisabled,
         onSubmit: (values) => {
           const {
@@ -340,6 +285,16 @@ class Pane extends React.Component {
     }
     this.menu = menu;
   }
+  setPkgJson(filePath) {
+    const pkgJson = fsExtra.readJsonSync(filePath);
+    this.setState({
+      pkgFilePath: filePath,
+      pkgFields: {
+        name: pkgJson.name,
+        description: pkgJson.description
+      }
+    });
+  }
   /**
    * Handle driver run
    * @param {String} type - deploy & build
@@ -430,10 +385,4 @@ class Pane extends React.Component {
   }
 }
 
-/**
- * Escape log message
- */
-function escapeLogMessage(data) {
-  return data.toString('utf8').replace(/\\/g, '\\\\').replace(/`/g, '\\`');
-}
 exports.Pane = Pane;

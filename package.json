@@ -1,6 +1,6 @@
 {
   "name": "ya-gui",
-  "version": "0.0.1-beta.0",
+  "version": "0.0.1-beta.1",
   "description": "A GUI tool for ya framework",
   "main": "src/index.js",
   "scripts": {
@@ -37,7 +37,13 @@
   },
   "build": {
     "nwVersion": "0.33.3",
-    "nwFlavor": "sdk"
+    "nwFlavor": "sdk",
+    "win": {
+      "icon": "src/deps/13.ico"
+    },
+    "mac": {
+      "icon": "src/deps/13.icns"
+    }
   },
   "devDependencies": {
     "nwjs-builder-phoenix": "^1.14.8"

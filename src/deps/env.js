@@ -8,6 +8,8 @@ const { LocaleProvider } = require('antd');
 const Gaze = require('gaze').Gaze;
 const path = require('path');
 const fs = require('fs');
+const fsExtra = require('fs-extra');
+const os = require('os');
 
 const zhCN = require('antd/lib/locale-provider/zh_CN');
 
@@ -33,6 +35,16 @@ function isDev() {
   return !fs.existsSync(path.resolve(__dirname, '../../credits.html'));
 }
 
+/**
+ * Escape log message
+ */
+function escapeLogMessage(data) {
+  return data.toString('utf8').replace(/\\/g, '\\\\').replace(/`/g, '\\`');
+}
+
+const profilePath = path.resolve(os.homedir(), '\.ya-gui/profile.json'); // eslint-disable-line
+fsExtra.ensureFileSync(profilePath);
+
 module.exports = {
   React,
   ReactDOM,
@@ -44,5 +56,7 @@ module.exports = {
   },
   enableDevMode,
   yaCommand: path.resolve(__dirname, '../../node_modules/ya-driver/bin/ya2.js'),
-  isDev
+  isDev,
+  escapeLogMessage,
+  profilePath
 };

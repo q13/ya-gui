@@ -19,6 +19,7 @@ class Pane extends React.Component {
   }
   render() {
     const props = this.props;
+    const menus = props.menus;
     return e(Menu, {
       mode: 'inline',
       theme: 'dark',
@@ -27,26 +28,21 @@ class Pane extends React.Component {
       },
       selectedKeys: [props.selectedKey],
       onClick: this.handleMenuClick
-    }, [
-      e(MenuItem, {
-        key: 'deploy'
-      }, ...[ // array形式传递children会导致react提示输入key值
-        e(Icon, {
-          type: 'desktop'
-        }),
-        e('span', {
-        }, 'Deploy & Build')
-      ]),
-      e(MenuItem, {
-        key: 'analyzer'
+    }, ...menus.map(({
+      key,
+      label,
+      icon
+    }) => {
+      return e(MenuItem, {
+        key
       }, ...[
         e(Icon, {
-          type: 'pie-chart'
+          type: icon
         }),
         e('span', {
-        }, 'Build analyzer')
+        }, label)
       ])
-    ]);
+    }));
   }
   handleMenuClick({
     key

@@ -18,11 +18,21 @@ class Pane extends React.Component {
     super(props);
     this.state = {
       panes: [{
+        key: 'create',
+        label: 'Create',
+        icon: 'file-add',
+        isActive: false,
+        Pane: require('./create').Pane
+      }, {
         key: 'deploy',
+        label: 'Deploy',
+        icon: 'desktop',
         isActive: true,
         Pane: require('./deploy').Pane
       }, {
         key: 'analyzer',
+        label: 'Analyzer',
+        icon: 'pie-chart',
         isActive: false,
         Pane: require('./analyzer').Pane
       }]
@@ -41,6 +51,17 @@ class Pane extends React.Component {
         span: 4
       }, e(Sidebar, {
         selectedKey,
+        menus: panes.map(({
+          key,
+          label,
+          icon
+        }) => {
+          return {
+            key,
+            label,
+            icon
+          };
+        }),
         onMenuClick: (paneName) => {
           this.activePane(paneName);
         }

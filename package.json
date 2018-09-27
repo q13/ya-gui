@@ -38,7 +38,7 @@
   "build": {
     "nwVersion": "0.33.3",
     "nwFlavor": "sdk",
-    "packed": true,
+    "packed": false,
     "win": {
       "icon": "src/deps/13.ico"
     },

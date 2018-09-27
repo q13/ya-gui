@@ -5,7 +5,9 @@
     "allowSyntheticDefaultImports": true
   },
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "dist",
+    "dll"
   ],
   "include": [
     "./src/**/*"

@@ -287,7 +287,14 @@ class Pane extends React.Component {
     this.menu = menu;
   }
   setPkgJson(filePath) {
-    const pkgJson = fsExtra.readJsonSync(filePath);
+    let pkgJson = fsExtra.readJsonSync(filePath, { throws: false });
+    if (!pkgJson) {
+      filePath = '';
+      pkgJson = {
+        name: '',
+        description: ''
+      };
+    }
     this.setState({
       pkgFilePath: filePath,
       pkgFields: {

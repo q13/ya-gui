@@ -102,13 +102,14 @@ class Pane extends React.Component {
           style: {
             marginLeft: '8px',
             fontStyle: 'italic',
-            color: '#262626'
+            color: '#262626',
+            textDecoration: 'underline'
           }
         }, pkgFilePath)
       ]),
       e('div', {
         style: {
-          paddingRight: '32px',
+          paddingRight: '40px',
           marginTop: '16px'
         }
       }, e(PkgForm, {

@@ -109,39 +109,47 @@ helpSubmenu.append(new nw.MenuItem({
     if (!isDev()) {
       const osType = os.type();
       if (osType === 'Windows_NT') {
-        setUpgradeProgress(0);
-        const t0 = new Date() / 1;
-        let handler = window.requestAnimationFrame(function step() {
-          const diff = (new Date() / 1) - t0;
-          const progressValue = Math.floor(99 / 30 * (diff / 1000));
-          setUpgradeProgress(progressValue);
-          if (progressValue < 99) {
-            handler = window.requestAnimationFrame(step);
-          }
-        });
-        gitDownloader('q13/ya-gui', path.resolve(__dirname, '../../'), function (err) {
-          if (err) {
-            message.error(`From github download package failure.`);
-          } else {
-            // 直接取消干到100
-            window.cancelAnimationFrame(handler);
-            setUpgradeProgress(100);
-            const newPkgJson = fsExtra.readJsonSync(path.resolve(__dirname, '../../package.json'), {
-              throws: false
-            });
-            if (JSON.stringify(pkgJson.dependencies) !== JSON.stringify(newPkgJson.dependencies) || JSON.stringify(pkgJson.devDependencies) !== JSON.stringify(newPkgJson.devDependencies)) {
-              try {
-                execSync('yarn upgrade', {
-                  cwd: path.resolve(__dirname, '../../')
-                });
-                // Set upgrade success flag
-                fsExtra.outputFileSync(path.resolve(__dirname, '../../upgrade.txt'), 'success');
-                message.success(`Please restart application apply new features`);
-                console.log('Upgrade success');
-              } catch (evt) {
-                message.error(`Install dependencies failure, try close application and run yarn install manually`);
-                console.log('Upgrade failure');
-              }
+        fetchRemotePkgJson((result) => {
+          if (result.flag) {
+            if (result.data.version !== pkgJson.version) {
+              setUpgradeProgress(0);
+              const t0 = new Date() / 1;
+              let handler = window.requestAnimationFrame(function step() {
+                const diff = (new Date() / 1) - t0;
+                const progressValue = Math.floor(99 / 30 * (diff / 1000));
+                setUpgradeProgress(progressValue);
+                if (progressValue < 99) {
+                  handler = window.requestAnimationFrame(step);
+                }
+              });
+              gitDownloader('q13/ya-gui', path.resolve(__dirname, '../../'), function (err) {
+                if (err) {
+                  message.error(`From github download package failure.`);
+                } else {
+                  // 直接取消干到100
+                  window.cancelAnimationFrame(handler);
+                  setUpgradeProgress(100);
+                  const newPkgJson = fsExtra.readJsonSync(path.resolve(__dirname, '../../package.json'), {
+                    throws: false
+                  });
+                  if (JSON.stringify(pkgJson.dependencies) !== JSON.stringify(newPkgJson.dependencies) || JSON.stringify(pkgJson.devDependencies) !== JSON.stringify(newPkgJson.devDependencies)) {
+                    try {
+                      execSync('yarn upgrade', {
+                        cwd: path.resolve(__dirname, '../../')
+                      });
+                      // Set upgrade success flag
+                      fsExtra.outputFileSync(path.resolve(__dirname, '../../upgrade.txt'), 'success');
+                      message.success(`Please restart application apply new features`);
+                      console.log('Upgrade success');
+                    } catch (evt) {
+                      message.error(`Install dependencies failure, try close application and run yarn install manually`);
+                      console.log('Upgrade failure');
+                    }
+                  }
+                }
+              });
+            } else {
+              message.info(`You are already have the newest version`);
             }
           }
         });
@@ -158,21 +166,35 @@ menu.append(new nw.MenuItem({
 }));
 nw.Window.get().menu = menu;
 
-request('https://raw.githubusercontent.com/q13/ya-gui/master/package.json', function (err, response, body) {
-  if (!err) {
-    if (response && response.statusCode === 200) {
-      const data = JSON.parse(body);
-      if (data.version !== pkgJson.version) { // Need upgrade
-        notification.info({
-          message: 'A new version available',
-          description: 'Click Help -> Upgrade menu to upgrade'
+function fetchRemotePkgJson(callback) {
+  request('https://raw.githubusercontent.com/q13/ya-gui/master/package.json', function (err, response, body) {
+    if (!err) {
+      if (response && response.statusCode === 200) {
+        const data = JSON.parse(body);
+        callback({ // eslint-disable-line
+          flag: true,
+          data: data
         });
+      } else {
+        message.error('Check upgrade failure, you may block by a wall');
       }
     } else {
       message.error('Check upgrade failure, you may block by a wall');
     }
-  } else {
-    message.error('Check upgrade failure, you may block by a wall');
+  });
+}
+
+fetchRemotePkgJson(({
+  flag,
+  data
+}) => {
+  if (flag) {
+    if (data.version !== pkgJson.version) { // Need upgrade
+      notification.info({
+        message: 'A new version available',
+        description: 'Click Help -> Upgrade menu to upgrade'
+      });
+    }
   }
 });
 

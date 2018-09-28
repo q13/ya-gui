@@ -16,6 +16,7 @@ const { execSync } = require('child_process');
 const {
   notification,
   message,
+  Modal,
   Progress
 } = require('antd');
 const pkgJson = require('../../package.json');
@@ -162,6 +163,17 @@ helpSubmenu.append(new nw.MenuItem({
         message.info('Sorry, the feature on road...');
       }
     }
+  }
+}));
+helpSubmenu.append(new nw.MenuItem({
+  label: 'Support',
+  click: () => {
+    Modal.info({
+      title: 'Support contacts',
+      content: 'DingTalk @qishuxu',
+      okText: 'Got it',
+      onOk() { }
+    });
   }
 }));
 

@@ -7,7 +7,8 @@ const {
   yaCommand,
   isDev,
   escapeLogMessage,
-  profilePath
+  profilePath,
+  topToolbar
 } = require('../deps/env');
 const { spawn } = require('child_process');
 const {
@@ -216,6 +217,8 @@ class Pane extends React.Component {
           ]),
           e(Col, {}, ...[
             e(Button, {
+              type: 'danger',
+              ghost: true,
               onClick: () => {
                 this.setState({
                   deployStatus: '',
@@ -256,8 +259,8 @@ class Pane extends React.Component {
   }
   initMenu() {
     const dev = isDev();
-    const menu = new nw.Menu({
-      type: dev ? 'menubar' : 'contextmenu'
+    const menu = dev ? topToolbar : new nw.Menu({
+      type: 'contextmenu'
     });
     menu.append(new nw.MenuItem({
       label: 'Open deploy log',
@@ -277,13 +280,14 @@ class Pane extends React.Component {
         this.acc.showDevTools(true);
       }
     }));
-    if (dev) {
-      nw.Window.get().menu = menu;
-    } else {
+    if (!dev) {
       document.body.addEventListener('contextmenu', function (evt) {
         evt.preventDefault();
         menu.popup(evt.x, evt.y);
       });
+    } else {
+      // Need assign
+      nw.Window.get().menu = menu;
     }
     this.menu = menu;
   }

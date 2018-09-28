@@ -145,6 +145,11 @@ helpSubmenu.append(new nw.MenuItem({
                       message.error(`Install dependencies failure, try close application and run yarn install manually`);
                       console.log('Upgrade failure');
                     }
+                  } else {
+                    // Set upgrade success flag
+                    fsExtra.outputFileSync(path.resolve(__dirname, '../../upgrade.txt'), 'success');
+                    message.success(`Please restart application apply new features`);
+                    console.log('Upgrade success');
                   }
                 }
               });

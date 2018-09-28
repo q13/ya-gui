@@ -116,7 +116,7 @@ helpSubmenu.append(new nw.MenuItem({
               const t0 = new Date() / 1;
               let handler = window.requestAnimationFrame(function step() {
                 const diff = (new Date() / 1) - t0;
-                const progressValue = Math.floor(99 / 30 * (diff / 1000));
+                const progressValue = Math.floor(99 / 60 * (diff / 1000));
                 setUpgradeProgress(progressValue);
                 if (progressValue < 99) {
                   handler = window.requestAnimationFrame(step);

@@ -7,8 +7,8 @@ const {
   yaCommand,
   isDev,
   escapeLogMessage,
-  profilePath,
-  topToolbar
+  profilePath
+  // topToolbar
 } = require('../deps/env');
 const { spawn } = require('child_process');
 const {
@@ -258,8 +258,9 @@ class Pane extends React.Component {
     this.acc = acc;
   }
   initMenu() {
+    const props = this.props;
     const dev = isDev();
-    const menu = dev ? topToolbar : new nw.Menu({
+    const menu = dev ? props.topBar : new nw.Menu({
       type: 'contextmenu'
     });
     menu.append(new nw.MenuItem({

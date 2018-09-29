@@ -12,6 +12,9 @@ const {
 const {
   Pane: Sidebar
 } = require('./sidebar');
+const {
+  withTopBarConsumer
+} = require('../modules/top-bar.js');
 
 class Pane extends React.Component {
   constructor(props) {
@@ -78,7 +81,7 @@ class Pane extends React.Component {
             display: pane.isActive ? 'block' : 'none',
             height: '100%'
           }
-        }, e(pane.Pane, {
+        }, e(withTopBarConsumer(pane.Pane), {
           onPanePipe: ({ action }) => {
             if (action === 'analyzerCompleted') {
               this.activePane('analyzer');

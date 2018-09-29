@@ -10,6 +10,16 @@ const {
 } = require('./deps/env');
 const portal = require('./panes/portal');
 const terminate = require('terminate');
+const {
+  withTopBarProvider
+} = require('./modules/top-bar.js');
+const {
+  fetchRemotePkgJson
+} = require('./deps/helper');
+const {
+  notification
+} = require('antd');
+const pkgJson = require('../package.json');
 
 let win = nw.Window.get();
 win.on('close', function () {
@@ -26,10 +36,26 @@ win.on('close', function () {
 enableDevMode(win);
 
 class App extends React.Component {
+  componentDidMount() {
+    // Check version
+    fetchRemotePkgJson(({
+      flag,
+      data
+    }) => {
+      if (flag) {
+        if (data.version !== pkgJson.version) { // Need upgrade
+          notification.info({
+            message: 'A new version available',
+            description: 'Click Help -> Upgrade menu to upgrade'
+          });
+        }
+      }
+    });
+  }
   render() {
     // theme.
     return e(LocaleProvider, {
     }, e(portal.Pane));
   }
 }
-ReactDOM.render(e(App), document.getElementById('app'));
+ReactDOM.render(e(withTopBarProvider(App)), document.getElementById('app'));

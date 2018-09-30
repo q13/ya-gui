@@ -38,7 +38,12 @@ class Pane extends React.Component {
         icon: 'pie-chart',
         isActive: false,
         Pane: require('./analyzer').Pane
-      }]
+      }].map((item) => {
+        return {
+          ...item,
+          Pane: withTopBarConsumer(item.Pane)
+        }
+      })
     };
   }
   render() {
@@ -81,7 +86,7 @@ class Pane extends React.Component {
             display: pane.isActive ? 'block' : 'none',
             height: '100%'
           }
-        }, e(withTopBarConsumer(pane.Pane), {
+        }, e(pane.Pane, {
           onPanePipe: ({ action }) => {
             if (action === 'analyzerCompleted') {
               this.activePane('analyzer');

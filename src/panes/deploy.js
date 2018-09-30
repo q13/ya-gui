@@ -145,30 +145,6 @@ class Pane extends React.Component {
         }
       })),
       e('div', {
-        id: 'deploy-container',
-        style: {
-          position: 'absolute',
-          top: '-10000px',
-          left: '-10000px'
-        }
-      }),
-      e('div', {
-        id: 'build-container',
-        style: {
-          position: 'absolute',
-          top: '-10000px',
-          left: '-10000px'
-        }
-      }),
-      e('div', {
-        id: 'acc-container',
-        style: {
-          position: 'absolute',
-          top: '-10000px',
-          left: '-10000px'
-        }
-      }),
-      e('div', {
         style: {
           position: 'absolute',
           bottom: '0',
@@ -247,12 +223,38 @@ class Pane extends React.Component {
     const deployPath = path.resolve(__dirname, '../deploy.html');
     const buildPath = path.resolve(__dirname, '../build.html');
     const accPath = path.resolve(__dirname, '../acc.html');
-    document.getElementById('deploy-container').innerHTML = `<webview id="deploy" src="file:///${deployPath}" partition="trusted"></webview>`;
-    document.getElementById('build-container').innerHTML = `<webview id="build" src="file:///${buildPath}" partition="trusted"></webview>`;
-    document.getElementById('acc-container').innerHTML = `<webview id="acc" src="file:///${accPath}" partition="trusted"></webview>`;
+    let webviewContainerElt = document.getElementById('webview-container');
+    if (!webviewContainerElt) {
+      webviewContainerElt = document.createElement('div');
+      webviewContainerElt.id = 'webview-container';
+      Object.assign(webviewContainerElt.style, {
+        position: 'absolute',
+        top: '-10000px',
+        left: '-10000px'
+      });
+      document.body.appendChild(webviewContainerElt);
+    }
+    let htmlStr = '';
+    [{
+      id: 'deploy',
+      filePath: deployPath
+    }, {
+      id: 'build',
+      filePath: buildPath
+    }, {
+      id: 'acc',
+      filePath: accPath
+    }].forEach(({
+      id,
+      filePath
+    }) => {
+      htmlStr += `<webview id="${id}" src="file:///${filePath}" partition="trusted"></webview>`;
+    });
+    webviewContainerElt.innerHTML = htmlStr;
     const deploy = document.getElementById('deploy');
     const build = document.getElementById('build');
     const acc = document.getElementById('acc');
+
     this.deploy = deploy;
     this.build = build;
     this.acc = acc;

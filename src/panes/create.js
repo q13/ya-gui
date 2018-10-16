@@ -29,11 +29,13 @@ class Pane extends React.Component {
     this.state = {
       outputPath: '',
       status: '', // doing, success, error
+      depsStatus: '', // dependencies
       pkgJson: {
         name: '',
         description: ''
       }
     };
+    this.handleDepsInstall = this.handleDepsInstall.bind(this);
   }
   render() {
     const state = this.state;
@@ -176,8 +178,38 @@ class Pane extends React.Component {
             }
           }
         }
-      }))
+      })),
+      e('div', {
+        style: {
+          position: 'absolute',
+          bottom: '0',
+          left: '0',
+          width: '100%'
+        }
+      }, ...[ // footer
+        e(Row, {
+          type: 'flex',
+          justify: 'space-between'
+        }, ...[
+          e(Col, {
+          }, ...[
+            e(Button, {
+              type: 'primary',
+              loading: state.depsStatus === 'doing',
+              onClick: () => {
+                this.handleDepsInstall();
+              },
+              style: {
+                marginRight: '8px'
+              }
+            }, 'Dependencies install')
+          ])
+        ])
+      ])
     ]);
+  }
+  handleDepsInstall() {
+    message.info('Wait for implement');
   }
 }
 

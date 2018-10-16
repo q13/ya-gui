@@ -23,6 +23,6 @@ ya2 --help
 
 ### Deploy & Build
 
-<img alt="图示" src="https://raw.githubusercontent.com/q13/ya-gui/master/doc/images/2018-10-16_10-47-31.png" />
+<img alt="图示" width="800" src="https://raw.githubusercontent.com/q13/ya-gui/master/doc/images/2018-10-16_10-47-31.png" />
 
 MacOS下在项目根目录里执行对应如图命令即可（和原打包命令一致）

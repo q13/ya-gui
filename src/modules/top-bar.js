@@ -11,7 +11,8 @@ const os = require('os');
 const path = require('path');
 const {
   fetchRemotePkgJson,
-  isDev
+  isDev,
+  savePkgJson
 } = require('../deps/helper');
 const {
   gitRepUri
@@ -79,6 +80,9 @@ function init() {
                         });
                         // Set upgrade success flag
                         fsExtra.outputFileSync(upgradePath, 'success');
+                        savePkgJson({
+                          version: result.data.version
+                        });
                         message.success(`Please restart application apply new features`);
                         console.log('Upgrade success');
                       } catch (evt) {
@@ -88,6 +92,9 @@ function init() {
                     } else {
                       // Set upgrade success flag
                       fsExtra.outputFileSync(upgradePath, 'success');
+                      savePkgJson({
+                        version: result.data.version
+                      });
                       message.success(`Please restart application apply new features`);
                       console.log('Upgrade success');
                     }

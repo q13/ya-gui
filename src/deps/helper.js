@@ -2,6 +2,7 @@
  * Help utils
  */
 const fs = require('fs');
+const fsExtra = require('fs-extra');
 const path = require('path');
 const request = require('request');
 const {
@@ -43,6 +44,19 @@ module.exports = {
       } else {
         message.error('Check upgrade failure, you may block by a wall');
       }
+    });
+  },
+  /**
+   * Save package.json info
+   */
+  savePkgJson(data) {
+    const pkgJsonPath = path.resolve(__dirname, '../../package.json');
+    const pkgData = fsExtra.readJsonSync(pkgJsonPath);
+    fsExtra.writeJsonSync(pkgJsonPath, {
+      ...pkgData,
+      ...(data || {})
+    }, {
+      spaces: 2
     });
   }
 };

@@ -342,7 +342,7 @@ class Pane extends React.Component {
         [`${type}Status`]: 'doing'
       });
       if (type === 'deploy') {
-        driver = spawn('node', [yaCommand, 'serve', this.projectPath], {
+        driver = spawn('node', [yaCommand, 'serve', this.projectPath, '--mock'], {
           // silent: true
           stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]
         });

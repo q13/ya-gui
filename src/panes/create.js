@@ -12,16 +12,21 @@ const {
   Row,
   Col,
   message,
+  Modal,
   Upload,
+  Input,
   Button
 } = require('antd');
 const path = require('path');
 const fsExtra = require('fs-extra');
+const fs = require('fs');
 const { spawn } = require('child_process');
 const terminate = require('terminate');
 const {
   Comp: PkgForm
 } = require('../modules/pkg-form');
+
+const confirm = Modal.confirm;
 
 class Pane extends React.Component {
   constructor(props) {
@@ -30,6 +35,7 @@ class Pane extends React.Component {
       outputPath: '',
       status: '', // doing, success, error
       depsStatus: '', // dependencies
+      projectPath: '', // project path
       pkgJson: {
         name: '',
         description: ''
@@ -118,63 +124,83 @@ class Pane extends React.Component {
             message.error('Please select a parent directory first');
           } else {
             const createEngine = this.createEngine;
-            const run = () => {
-              const projectPath = path.resolve(outputPath, name);
-              fsExtra.ensureDirSync(projectPath);
-              this.createEngine = spawn('node', [yaCommand, 'create', projectPath, '--force'], {
-                // silent: true
-                stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]
-              });
-              this.createEngine.on('message', (data) => {
-                if (data.action === 'created') {
-                  let status = '';
-                  if (data.data) {
-                    status = 'success';
-                    const pkgFilePath = path.resolve(projectPath, 'package.json');
-                    const pkgJson = fsExtra.readJsonSync(pkgFilePath);
-                    fsExtra.writeJsonSync(pkgFilePath, {
-                      ...pkgJson,
-                      ...values
-                    }, {
-                      spaces: 2
-                    });
-                    if (this.form) {
-                      this.form.setFieldsValue({
-                        name: '',
-                        version: '',
-                        description: ''
+            const projectPath = path.resolve(outputPath, name);
+            const doer = () => {
+              const run = () => {
+                fsExtra.ensureDirSync(projectPath);
+                this.createEngine = spawn('node', [yaCommand, 'create', projectPath, '--force'], {
+                  // silent: true
+                  stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]
+                });
+                this.createEngine.on('message', (data) => {
+                  if (data.action === 'created') {
+                    let status = '';
+                    if (data.data) {
+                      status = 'success';
+                      const pkgFilePath = path.resolve(projectPath, 'package.json');
+                      const pkgJson = fsExtra.readJsonSync(pkgFilePath);
+                      fsExtra.writeJsonSync(pkgFilePath, {
+                        ...pkgJson,
+                        ...values
+                      }, {
+                        spaces: 2
                       });
+                      if (this.form) {
+                        this.form.setFieldsValue({
+                          name: '',
+                          version: '',
+                          description: ''
+                        });
+                      }
+                      message.success(`Create ${name} success`);
+                      this.setState({
+                        projectPath
+                      });
+                    } else {
+                      message.error(`Create ${name} error`);
+                      status = 'error';
                     }
-                    message.success(`Create ${name} success`);
-                  } else {
-                    message.error(`Create ${name} error`);
-                    status = 'error';
+                    this.setState({
+                      status
+                    });
                   }
-                  this.setState({
-                    status
-                  });
-                }
+                });
+                this.createEngine.stdout.on('data', (data) => {
+                  /* ... do something with data ... */
+                  console.log(escapeLogMessage(data));
+                });
+                this.createEngine.stderr.on('data', (data) => {
+                  console.error(escapeLogMessage(data));
+                });
+              }
+              this.setState({
+                status: 'doing'
               });
-              this.createEngine.stdout.on('data', (data) => {
-                /* ... do something with data ... */
-                console.log(escapeLogMessage(data));
-              });
-              this.createEngine.stderr.on('data', (data) => {
-                console.error(escapeLogMessage(data));
-              });
-            }
-            this.setState({
-              status: 'doing'
-            });
-            if (createEngine) {
-              terminate(createEngine.pid, (err) => {
-                if (err) { // you will get an error if you did not supply a valid process.pid
-                  console.log('Oopsy: ' + err); // handle errors in your preferred way.
-                }
+              if (createEngine) {
+                terminate(createEngine.pid, (err) => {
+                  if (err) { // you will get an error if you did not supply a valid process.pid
+                    console.log('Oopsy: ' + err); // handle errors in your preferred way.
+                  }
+                  run();
+                });
+              } else {
                 run();
+              }
+            };
+            if (fs.existsSync(projectPath)) {
+              confirm({
+                title: `You should know`,
+                content: `${projectPath} exists, Do you want overwrite the directory?`,
+                cancelText: 'Cancel',
+                okText: 'I know',
+                onOk() {
+                  doer();
+                },
+                onCancel() {
+                }
               });
             } else {
-              run();
+              doer();
             }
           }
         }
@@ -202,14 +228,72 @@ class Pane extends React.Component {
               style: {
                 marginRight: '8px'
               }
-            }, 'Dependencies install')
+            }, 'Dependencies install'),
+            e(Input, {
+              placeholder: 'Project path',
+              value: state.projectPath,
+              style: {
+                width: '300px'
+              },
+              onChange: (evt) => {
+                this.setState({
+                  projectPath: evt.target.value.trim()
+                });
+              }
+            })
           ])
         ])
       ])
     ]);
   }
   handleDepsInstall() {
-    message.info('Wait for implement');
+    // message.info('Wait for implement');
+    const state = this.state;
+    if (!state.projectPath) {
+      message.error(`The project path is blank`);
+      return;
+    }
+    const installEngine = this.installEngine;
+    const run = () => {
+      this.installEngine = spawn('node', [yaCommand, 'deps', state.projectPath], {
+        // silent: true
+        stdio: ['pipe', 'pipe', 'pipe', 'ipc']
+      });
+      this.installEngine.on('message', (data) => {
+        if (data.action === 'deps') {
+          message.success(`${state.projectPath} dependencies installed successful`);
+          this.setState({
+            depsStatus: 'success'
+          });
+        } else {
+          this.setState({
+            depsStatus: 'error'
+          });
+        }
+      });
+      this.installEngine.stdout.on('data', (data) => {
+        /* ... do something with data ... */
+        console.log(escapeLogMessage(data));
+      });
+      this.installEngine.stderr.on('data', (data) => {
+        const msg = escapeLogMessage(data);
+        console.error(msg);
+        message.error('Something wrong with message', msg);
+      });
+    };
+    this.setState({
+      depsStatus: 'doing'
+    });
+    if (installEngine) {
+      terminate(installEngine.pid, (err) => {
+        if (err) { // you will get an error if you did not supply a valid process.pid
+          console.log('Oopsy: ' + err); // handle errors in your preferred way.
+        }
+        run();
+      });
+    } else {
+      run();
+    }
   }
 }
 

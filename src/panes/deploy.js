@@ -40,7 +40,8 @@ class Pane extends React.Component {
       },
       deployStatus: '', // doing, success, error
       buildStatus: '',
-      accStatus: ''
+      accStatus: '',
+      eslintStatus: ''
     };
   }
   shouldComponentUpdate(nextProps, nextState) {
@@ -188,8 +189,18 @@ class Pane extends React.Component {
               loading: state.buildStatus === 'doing',
               onClick: () => {
                 this.handleDriver('build');
+              },
+              style: {
+                marginRight: '8px'
               }
-            }, 'Build test')
+            }, 'Build test'),
+            e(Button, {
+              type: 'primary',
+              loading: state.eslintStatus === 'doing',
+              onClick: () => {
+                this.handleDriver('eslint');
+              }
+            }, 'ESLint setup')
           ]),
           e(Col, {}, ...[
             e(Button, {
@@ -202,7 +213,7 @@ class Pane extends React.Component {
                   accStatus: ''
                 });
                 // 尝试终止driver
-                ['deploy', 'build', 'acc'].forEach((type) => {
+                ['deploy', 'build', 'acc', 'eslint'].forEach((type) => {
                   const driver = this[`${type}Driver`];
                   if (driver) {
                     terminate(driver.pid, function (err) {
@@ -223,6 +234,7 @@ class Pane extends React.Component {
     const deployPath = path.resolve(__dirname, '../deploy.html');
     const buildPath = path.resolve(__dirname, '../build.html');
     const accPath = path.resolve(__dirname, '../acc.html');
+    const eslintPath = path.resolve(__dirname, '../eslint.html');
     let webviewContainerElt = document.getElementById('webview-container');
     if (!webviewContainerElt) {
       webviewContainerElt = document.createElement('div');
@@ -244,6 +256,9 @@ class Pane extends React.Component {
     }, {
       id: 'acc',
       filePath: accPath
+    }, {
+      id: 'eslint',
+      filePath: eslintPath
     }].forEach(({
       id,
       filePath
@@ -254,10 +269,12 @@ class Pane extends React.Component {
     const deploy = document.getElementById('deploy');
     const build = document.getElementById('build');
     const acc = document.getElementById('acc');
+    const eslint = document.getElementById('eslint');
 
     this.deploy = deploy;
     this.build = build;
     this.acc = acc;
+    this.eslint = eslint;
   }
   initMenu() {
     const props = this.props;
@@ -281,6 +298,12 @@ class Pane extends React.Component {
       label: 'Open accelerate log',
       click: () => {
         this.acc.showDevTools(true);
+      }
+    }));
+    menu.append(new nw.MenuItem({
+      label: 'Open eslint log',
+      click: () => {
+        this.eslint.showDevTools(true);
       }
     }));
     if (!dev) {
@@ -356,9 +379,14 @@ class Pane extends React.Component {
           // silent: true
           stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]
         });
+      } else if (type === 'eslint') {
+        driver = spawn('node', [yaCommand, 'eslint', this.projectPath], {
+          // silent: true
+          stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]
+        });
       }
       driver.on('message', (data) => {
-        if (data.action === 'compiled') {
+        if (data.action === 'compiled' || data.action === 'complete') { // eslint send complete action
           this.setState({
             [`${type}Status`]: 'success'
           });

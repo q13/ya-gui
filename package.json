@@ -1,6 +1,6 @@
 {
   "name": "ya-gui",
-  "version": "0.0.1-beta.5",
+  "version": "0.0.1-beta.6",
   "description": "A GUI tool for ya framework",
   "main": "src/index.js",
   "scripts": {
@@ -21,7 +21,7 @@
     "react-dom": "16.4.2",
     "request": "2.88.0",
     "terminate": "2.1.0",
-    "ya-driver": "^0.1.1-alpha.0"
+    "ya-driver": "^1.0.0"
   },
   "keywords": [
     "GUI",

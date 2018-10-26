@@ -41,7 +41,8 @@ class Pane extends React.Component {
       deployStatus: '', // doing, success, error
       buildStatus: '',
       accStatus: '',
-      eslintStatus: ''
+      eslintStatus: '',
+      testStatus: ''
     };
   }
   shouldComponentUpdate(nextProps, nextState) {
@@ -199,8 +200,18 @@ class Pane extends React.Component {
               loading: state.eslintStatus === 'doing',
               onClick: () => {
                 this.handleDriver('eslint');
+              },
+              style: {
+                marginRight: '8px'
               }
-            }, 'ESLint setup')
+            }, 'ESLint setup'),
+            e(Button, {
+              type: 'primary',
+              loading: state.testStatus === 'doing',
+              onClick: () => {
+                this.handleDriver('test');
+              }
+            }, 'Unit testing')
           ]),
           e(Col, {}, ...[
             e(Button, {
@@ -210,10 +221,12 @@ class Pane extends React.Component {
                 this.setState({
                   deployStatus: '',
                   buildStatus: '',
-                  accStatus: ''
+                  accStatus: '',
+                  eslintStatus: '',
+                  testStatus: ''
                 });
                 // 尝试终止driver
-                ['deploy', 'build', 'acc', 'eslint'].forEach((type) => {
+                ['deploy', 'build', 'acc', 'eslint', 'test'].forEach((type) => {
                   const driver = this[`${type}Driver`];
                   if (driver) {
                     terminate(driver.pid, function (err) {
@@ -235,6 +248,7 @@ class Pane extends React.Component {
     const buildPath = path.resolve(__dirname, '../build.html');
     const accPath = path.resolve(__dirname, '../acc.html');
     const eslintPath = path.resolve(__dirname, '../eslint.html');
+    const testPath = path.resolve(__dirname, '../test.html');
     let webviewContainerElt = document.getElementById('webview-container');
     if (!webviewContainerElt) {
       webviewContainerElt = document.createElement('div');
@@ -259,6 +273,9 @@ class Pane extends React.Component {
     }, {
       id: 'eslint',
       filePath: eslintPath
+    }, {
+      id: 'test',
+      filePath: testPath
     }].forEach(({
       id,
       filePath
@@ -270,11 +287,13 @@ class Pane extends React.Component {
     const build = document.getElementById('build');
     const acc = document.getElementById('acc');
     const eslint = document.getElementById('eslint');
+    const test = document.getElementById('test');
 
     this.deploy = deploy;
     this.build = build;
     this.acc = acc;
     this.eslint = eslint;
+    this.test = test;
   }
   initMenu() {
     const props = this.props;
@@ -304,6 +323,12 @@ class Pane extends React.Component {
       label: 'Open eslint log',
       click: () => {
         this.eslint.showDevTools(true);
+      }
+    }));
+    menu.append(new nw.MenuItem({
+      label: 'Open unit testing log',
+      click: () => {
+        this.test.showDevTools(true);
       }
     }));
     if (!dev) {
@@ -384,6 +409,12 @@ class Pane extends React.Component {
           // silent: true
           stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]
         });
+      } else if (type === 'test') {
+        driver = spawn('node', [yaCommand, 'test', this.projectPath], {
+          cwd: this.projectPath, // TODO://!important: babel-plugin-istanbul依赖process.cwd()获取正确的cwd地址，参见ya-driver/node_modules/babel-plugin-istanbul/lib/index.js 第30行
+          // silent: true
+          stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]
+        });
       }
       driver.on('message', (data) => {
         if (data.action === 'compiled' || data.action === 'complete') { // eslint send complete action
@@ -393,6 +424,14 @@ class Pane extends React.Component {
           if (type === 'build') {
             this.props.onPanePipe({
               action: 'analyzerCompleted'
+            });
+          }
+          if (type === 'test') {
+            this.props.onPanePipe({
+              action: 'testCompleted',
+              data: {
+                projectPath: this.projectPath
+              }
             });
           }
         }

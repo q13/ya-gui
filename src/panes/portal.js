@@ -34,16 +34,23 @@ class Pane extends React.Component {
         Pane: require('./deploy').Pane
       }, {
         key: 'analyzer',
-        label: 'Analyzer',
+        label: 'Build analyzer',
         icon: 'pie-chart',
         isActive: false,
         Pane: require('./analyzer').Pane
+      }, {
+        key: 'coverage',
+        label: 'Code coverage',
+        icon: 'pie-chart',
+        isActive: false,
+        Pane: require('./coverage').Pane
       }].map((item) => {
         return {
           ...item,
           Pane: withTopBarConsumer(item.Pane)
         }
-      })
+      }),
+      codeCoverageReporterPath: '' // current code coverage reporter path
     };
   }
   render() {
@@ -80,19 +87,31 @@ class Pane extends React.Component {
           padding: '8px'
         }
       }, panes.map((pane) => {
+        let paneProps = {
+          onPanePipe: ({ action, data }) => {
+            if (action === 'analyzerCompleted') {
+              this.activePane('analyzer');
+            } else if (action === 'testCompleted') {
+              const {
+                projectPath
+              } = data;
+              this.activePane('coverage');
+              this.setState({
+                codeCoverageReporterPath: `file://${encodeURI(projectPath.replace(/\\/g, '/'))}/coverage/report/index.html`
+              });
+            }
+          }
+        };
+        if (pane.key === 'coverage') {
+          paneProps.reportPath = state.codeCoverageReporterPath;
+        }
         return e('div', {
           key: pane.key,
           style: {
             display: pane.isActive ? 'block' : 'none',
             height: '100%'
           }
-        }, e(pane.Pane, {
-          onPanePipe: ({ action }) => {
-            if (action === 'analyzerCompleted') {
-              this.activePane('analyzer');
-            }
-          }
-        }));
+        }, e(pane.Pane, paneProps));
       }))
     ]);
   }

@@ -23,13 +23,13 @@ class Pane extends React.Component {
       panes: [{
         key: 'create',
         label: 'Create',
-        icon: 'file-add',
+        icon: 'project',
         isActive: false,
         Pane: require('./create').Pane
       }, {
         key: 'deploy',
         label: 'Deploy',
-        icon: 'desktop',
+        icon: 'build',
         isActive: true,
         Pane: require('./deploy').Pane
       }, {
@@ -41,7 +41,7 @@ class Pane extends React.Component {
       }, {
         key: 'coverage',
         label: 'Code coverage',
-        icon: 'pie-chart',
+        icon: 'deployment-unit',
         isActive: false,
         Pane: require('./coverage').Pane
       }].map((item) => {

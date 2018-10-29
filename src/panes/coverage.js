@@ -13,9 +13,9 @@ const {
 
 class Pane extends React.Component {
   componentDidUpdate() {
-    // setTimeout(() => { // wait for serve setup
-    //   this.reload();
-    // }, 600);
+    setTimeout(() => { // wait for serve setup
+      this.reload();
+    }, 600);
   }
   render() {
     const props = this.props;
@@ -62,6 +62,13 @@ class Pane extends React.Component {
           style: {
             width: '100%',
             height: 'calc(100vh - 64px)'
+          },
+          onLoad: () => {
+            const ifrDoc = this.refs.frame.contentWindow.document.documentElement;
+            const ifrBody = this.refs.frame.contentWindow.document.body;
+            // iframe内部加入滚动条
+            ifrDoc.style.overflow = 'auto';
+            ifrBody.style.overflow = 'auto';
           }
         })
       ])

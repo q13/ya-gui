@@ -13,7 +13,9 @@ const {
 
 class Pane extends React.Component {
   componentDidUpdate() {
-    this.reload();
+    setTimeout(() => { // wait for serve setup
+      this.reload();
+    }, 60);
   }
   render() {
     const props = this.props;

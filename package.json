@@ -1,6 +1,6 @@
 {
   "name": "ya-gui",
-  "version": "0.0.1-beta.6",
+  "version": "0.0.1-beta.7",
   "description": "A GUI tool for ya framework",
   "main": "src/index.js",
   "scripts": {
@@ -38,7 +38,7 @@
     "icon": "src/deps/13.png"
   },
   "build": {
-    "nwVersion": "0.33.3",
+    "nwVersion": "0.34.1",
     "nwFlavor": "sdk",
     "packed": false,
     "win": {

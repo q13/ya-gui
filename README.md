@@ -10,7 +10,7 @@ A GUI tool for Ya framework
 1. [Releases](https://github.com/q13/ya-gui/releases) 下选择下载最新的发布版本（ya-gui-xx-win-x64.zip）;
 2. 解压进入目录，双击*ya-gui.exe*打开。
 
-#### MacOS(x64)
+#### macOS(x64)
 
 1. [Releases](https://github.com/q13/ya-gui/releases) 下选择下载最新的发布版本（ya-gui-xx-mac-x64.zip）;
 2. 解压进入目录，双击*ya-gui.app*或者在终端模式下执行

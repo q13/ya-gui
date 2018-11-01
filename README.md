@@ -12,14 +12,12 @@ A GUI tool for Ya framework
 
 #### MacOS(x64)
 
-1. 暂不支持MacOS版GUI操作，请通过npm全局安装 ya-driver包
+1. [Releases](https://github.com/q13/ya-gui/releases) 下选择下载最新的发布版本（ya-gui-xx-mac-x64.7z）;
+2. 解压进入目录，双击*ya-gui.app*或者在终端模式下执行
 ```Shell
-npm install ya-driver -g
+open ya-gui.app
 ```
-2. 测试是否安装成功
-```Shell
-ya2 --help
-```
+打开
 
 ### Deploy & Build
 

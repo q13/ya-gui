@@ -5,7 +5,6 @@ const {
   React,
   e,
   yaCommand,
-  isDev,
   escapeLogMessage,
   profilePath
   // topToolbar
@@ -158,7 +157,7 @@ class Pane extends React.Component {
           style: {
             marginBottom: '8px'
           }
-        }, 'For Below log output, please click context menu choose relevant item.'),
+        }, 'For Below log output, please click relevant item from top toolbar.'),
         e(Row, {
           type: 'flex',
           justify: 'space-between'
@@ -297,49 +296,44 @@ class Pane extends React.Component {
   }
   initMenu() {
     const props = this.props;
-    const dev = isDev();
-    const menu = dev ? props.topBar : new nw.Menu({
-      type: 'contextmenu'
-    });
-    menu.append(new nw.MenuItem({
-      label: 'Open deploy log',
+    const menu = props.topBar;
+    const logSubmenu = new nw.Menu(); // Create log sub menu
+    logSubmenu.append(new nw.MenuItem({
+      label: 'Deploy',
       click: () => {
         this.deploy.showDevTools(true);
       }
     }));
-    menu.append(new nw.MenuItem({
-      label: 'Open build log',
+    logSubmenu.append(new nw.MenuItem({
+      label: 'Build',
       click: () => {
         this.build.showDevTools(true);
       }
     }));
-    menu.append(new nw.MenuItem({
-      label: 'Open accelerate log',
+    logSubmenu.append(new nw.MenuItem({
+      label: 'Accelerate',
       click: () => {
         this.acc.showDevTools(true);
       }
     }));
-    menu.append(new nw.MenuItem({
-      label: 'Open eslint log',
+    logSubmenu.append(new nw.MenuItem({
+      label: 'ESLint',
       click: () => {
         this.eslint.showDevTools(true);
       }
     }));
-    menu.append(new nw.MenuItem({
-      label: 'Open unit testing log',
+    logSubmenu.append(new nw.MenuItem({
+      label: 'Unit testing',
       click: () => {
         this.test.showDevTools(true);
       }
     }));
-    if (!dev) {
-      document.body.addEventListener('contextmenu', function (evt) {
-        evt.preventDefault();
-        menu.popup(evt.x, evt.y);
-      });
-    } else {
-      // Need assign
-      nw.Window.get().menu = menu;
-    }
+    // Need assign
+    menu.append(new nw.MenuItem({
+      label: 'Log',
+      submenu: logSubmenu
+    }));
+    nw.Window.get().menu = menu;
     this.menu = menu;
   }
   setPkgJson(filePath) {

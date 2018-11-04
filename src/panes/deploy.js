@@ -26,6 +26,9 @@ const terminate = require('terminate');
 const {
   Comp: PkgForm
 } = require('../modules/pkg-form');
+const {
+  getNodeLibBin
+} = require('../deps/helper');
 
 class Pane extends React.Component {
   constructor(props) {
@@ -364,6 +367,7 @@ class Pane extends React.Component {
     let driver = this[`${type}Driver`];
     const state = this.state;
     const driverStatus = state[`${type}Status`];
+    const nodeLibBin = getNodeLibBin();
     if (!this.projectPath) {
       message.error(`Please choose a package.json first`);
       return;
@@ -384,27 +388,27 @@ class Pane extends React.Component {
         [`${type}Status`]: 'doing'
       });
       if (type === 'deploy') {
-        driver = spawn('node', [yaCommand, 'serve', this.projectPath, '--mock'], {
+        driver = spawn(nodeLibBin, [yaCommand, 'serve', this.projectPath, '--mock'], {
           // silent: true
           stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]
         });
       } else if (type === 'build') {
-        driver = spawn('node', [yaCommand, 'build', this.projectPath, '--app-env', 'local'], {
+        driver = spawn(nodeLibBin, [yaCommand, 'build', this.projectPath, '--app-env', 'local'], {
           // silent: true
           stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]
         });
       } else if (type === 'acc') {
-        driver = spawn('node', [yaCommand, 'acc', this.projectPath], {
+        driver = spawn(nodeLibBin, [yaCommand, 'acc', this.projectPath], {
           // silent: true
           stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]
         });
       } else if (type === 'eslint') {
-        driver = spawn('node', [yaCommand, 'eslint', this.projectPath], {
+        driver = spawn(nodeLibBin, [yaCommand, 'eslint', this.projectPath], {
           // silent: true
           stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]
         });
       } else if (type === 'test') {
-        driver = spawn('node', [yaCommand, 'test', this.projectPath], {
+        driver = spawn(nodeLibBin, [yaCommand, 'test', this.projectPath], {
           cwd: this.projectPath, // TODO://!important: babel-plugin-istanbul依赖process.cwd()获取正确的cwd地址，参见ya-driver/node_modules/babel-plugin-istanbul/lib/index.js 第30行
           // silent: true
           stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]

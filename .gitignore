@@ -64,3 +64,4 @@ typings/
 .history/
 dist/
 package-lock.json
+lib/nodejs/

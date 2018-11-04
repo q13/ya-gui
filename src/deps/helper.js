@@ -2,15 +2,56 @@
  * Help utils
  */
 const fs = require('fs');
+const os = require('os');
 const fsExtra = require('fs-extra');
 const path = require('path');
 const request = require('request');
+const {
+  spawnSync
+} = require('child_process');
 const {
   remotePkgUrl
 } = require('./config');
 const {
   message
 } = require('antd');
+
+const osType = os.type();
+const systermNodeVersion = spawnSync('node', ['-v']).stdout.toString().trim(); // 获取系统命令node版本号
+const arch = os.arch();
+
+const getNodeLibName = () => {
+  let name = ''
+  if (osType === 'Windows_NT') {
+    name = `node-${systermNodeVersion}-win-${arch}`;
+  } else if (osType === 'Darwin') {
+    name = `node-${systermNodeVersion}-darwin-${arch}`;
+  }
+  return name;
+};
+const getNodeLibUri = () => {
+  let uri = '';
+  const libName = getNodeLibName();
+  if (osType === 'Windows_NT') {
+    uri = `https://nodejs.org/dist/${systermNodeVersion}/${libName}.zip`;
+  } else if (osType === 'Darwin') {
+    uri = `https://nodejs.org/dist/${systermNodeVersion}/${libName}.tar.gz`;
+  }
+  return uri;
+};
+const getNodeLibBin = () => {
+  let bin = '';
+  const libName = getNodeLibName();
+  if (osType === 'Windows_NT') {
+    bin = path.resolve(__dirname, `../../lib/nodejs/${libName}/node.exe`);
+  } else if (osType === 'Darwin') {
+    bin = path.resolve(__dirname, `../../lib/nodejs/${libName}/bin/node`);
+  }
+  if (!fs.existsSync(bin)) {
+    bin = 'node'; // 默认使用系统node命令
+  }
+  return bin;
+};
 
 module.exports = {
   /**
@@ -58,5 +99,8 @@ module.exports = {
     }, {
       spaces: 2
     });
-  }
+  },
+  getNodeLibName,
+  getNodeLibUri,
+  getNodeLibBin
 };

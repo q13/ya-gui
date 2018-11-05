@@ -45,7 +45,8 @@ function init() {
     click: () => {
       if (!isDev()) {
         const osType = os.type();
-        if (osType === 'Windows_NT') {
+        // if (osType === 'Windows_NT') {
+        if (osType === 'Nothing') {
           fetchRemotePkgJson((result) => {
             if (result.flag) {
               if (result.data.version !== pkgJson.version) {

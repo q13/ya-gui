@@ -42,11 +42,18 @@ const getNodeLibUri = () => {
 };
 const getNodeLibBin = () => {
   let bin = '';
-  const libName = getNodeLibName();
-  if (osType === 'Windows_NT') {
-    bin = path.resolve(__dirname, `../../lib/nodejs/${libName}/node.exe`);
-  } else if (osType === 'Darwin') {
-    bin = path.resolve(__dirname, `../../lib/nodejs/${libName}/bin/node`);
+  // const libName = getNodeLibName();
+  const nodeLibParentPath = path.resolve(__dirname, `../../lib/nodejs`);
+  const nodeJson = fsExtra.readJsonSync(path.resolve(nodeLibParentPath, './node.json'), {
+    throws: false
+  });
+  if (nodeJson) {
+    const libName = nodeJson.libName;
+    if (osType === 'Windows_NT') {
+      bin = path.resolve(__dirname, `../../lib/nodejs/${libName}/node.exe`);
+    } else if (osType === 'Darwin') {
+      bin = path.resolve(__dirname, `../../lib/nodejs/${libName}/bin/node`);
+    }
   }
   if (!fs.existsSync(bin)) {
     bin = systermNodeBin; // 默认使用系统node命令
@@ -101,6 +108,7 @@ module.exports = {
       spaces: 2
     });
   },
+  systermNodeVersion,
   getNodeLibName,
   getNodeLibUri,
   getNodeLibBin

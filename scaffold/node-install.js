@@ -9,6 +9,7 @@ const {
 } = require('child_process');
 const download = require('download');
 const {
+  systermNodeVersion,
   getNodeLibUri,
   getNodeLibName
 } = require('../src/deps/helper');
@@ -33,6 +34,11 @@ download(uri, distPath, {
       console.log(`Node bin permission set to 777`);
     }
   }
+  // 保存node.json
+  fsExtra.writeJsonSync(path.resolve(distPath, './node.json'), {
+    version: systermNodeVersion,
+    libName: libName
+  });
 }).catch((evt) => {
   console.error('Download error', evt);
 });

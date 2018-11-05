@@ -17,7 +17,8 @@ const {
 } = require('antd');
 
 const osType = os.type();
-const systermNodeVersion = spawnSync('node', ['-v']).stdout.toString().trim(); // 获取系统命令node版本号
+const systermNodeBin = (osType === 'Darwin' ? '/usr/local/bin/node' : 'node');
+const systermNodeVersion = spawnSync(systermNodeBin, ['-v']).stdout.toString().trim(); // 获取系统命令node版本号
 const arch = os.arch();
 
 const getNodeLibName = () => {
@@ -48,7 +49,7 @@ const getNodeLibBin = () => {
     bin = path.resolve(__dirname, `../../lib/nodejs/${libName}/bin/node`);
   }
   if (!fs.existsSync(bin)) {
-    bin = 'node'; // 默认使用系统node命令
+    bin = systermNodeBin; // 默认使用系统node命令
   }
   return bin;
 };

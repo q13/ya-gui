@@ -37,10 +37,14 @@ if (isSvgoExist) {
   const distAppDir = path.resolve(__dirname, `../dist/${pkgDirName}`);
   const distPkgFile = path.resolve(__dirname, `../dist/${pkgDirName}.zip`);
   // 重设权限
-  const nodeLib = path.resolve(distAppDir, `./${distSourcesPath}/lib/nodejs/${pkgDirName}/bin`);
-  const output = spawnSync('chmod', ['-R', '777', nodeLib]);
-  if (output.status === 0) {
-    console.log(`Node bin permission set to 777`);
+  if (osType === 'Darwin') {
+    const nodeLib = path.resolve(distAppDir, `./${distSourcesPath}/lib/nodejs/${pkgDirName}/bin`);
+    const output = spawnSync('chmod', ['-R', '777', nodeLib]);
+    if (output.status === 0) {
+      console.log(`Node bin permission set to 777`);
+    } else {
+      console.error('Assign permission error', output.stderr.toString());
+    }
   }
   compressing.zip.compressDir(distAppDir, distPkgFile).then(() => {
     console.log('Compress done.');

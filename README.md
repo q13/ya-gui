@@ -17,7 +17,7 @@ A GUI tool for Ya framework
 ```Shell
 open ya-gui.app
 ```
-打开。
+或者双击*ya-gui.app*应用打开。
 
 ### Deploy & Build
 

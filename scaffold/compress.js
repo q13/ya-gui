@@ -6,6 +6,9 @@ const os = require('os');
 const path = require('path');
 const fsExtra = require('fs-extra');
 const fs = require('fs');
+const {
+  spawnSync
+} = require('child_process');
 const compressing = require('compressing');
 const pkgJson = require('../package.json');
 
@@ -22,7 +25,8 @@ if (osType === 'Windows_NT') {
   platformName = 'mac-x64';
   distSourcesPath = './ya-gui.app/Contents/Resources/app.nw/';
 }
-const svgoTargetPath = path.resolve(__dirname, `../dist/${pkgName}-${version}-${platformName}/${distSourcesPath}/node_modules/svgo/.svgo.yml`);
+const pkgDirName = `${pkgName}-${version}-${platformName}`;
+const svgoTargetPath = path.resolve(__dirname, `../dist/${pkgDirName}/${distSourcesPath}/node_modules/svgo/.svgo.yml`);
 
 // Copy and rename
 fsExtra.copySync(svgoSrcPath, svgoTargetPath);
@@ -30,8 +34,14 @@ fsExtra.copySync(svgoSrcPath, svgoTargetPath);
 const isSvgoExist = fs.existsSync(svgoTargetPath);
 if (isSvgoExist) {
   console.log('Generate .svgo.yml file');
-  const distAppDir = path.resolve(__dirname, `../dist/${pkgName}-${version}-${platformName}`);
-  const distPkgFile = path.resolve(__dirname, `../dist/${pkgName}-${version}-${platformName}.zip`);
+  const distAppDir = path.resolve(__dirname, `../dist/${pkgDirName}`);
+  const distPkgFile = path.resolve(__dirname, `../dist/${pkgDirName}.zip`);
+  // 重设权限
+  const nodeLib = path.resolve(distAppDir, `./${distSourcesPath}/lib/nodejs/${pkgDirName}/bin`);
+  const output = spawnSync('chmod', ['-R', '777', nodeLib]);
+  if (output.status === 0) {
+    console.log(`Node bin permission set to 777`);
+  }
   compressing.zip.compressDir(distAppDir, distPkgFile).then(() => {
     console.log('Compress done.');
   }).catch((evt) => {

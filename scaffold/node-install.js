@@ -27,8 +27,8 @@ download(uri, distPath, {
   console.log('Download done');
   // macOS下设置权限777
   if (osType === 'Darwin') {
-    const libDir = path.resolve(distPath, `./${libName}/bin`);
-    const output = spawnSync('chmod', ['-R', '777', libDir]);
+    const nodeLib = path.resolve(distPath, `./${libName}/bin`);
+    const output = spawnSync('chmod', ['-R', '777', nodeLib]);
     if (output.status === 0) {
       console.log(`Node bin permission set to 777`);
     }

@@ -27,7 +27,8 @@ const {
   Comp: PkgForm
 } = require('../modules/pkg-form');
 const {
-  getNodeLibBin
+  getNodeLibBin,
+  pushDriverPids
 } = require('../deps/helper');
 
 class Pane extends React.Component {
@@ -414,6 +415,7 @@ class Pane extends React.Component {
           stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]
         });
       }
+      pushDriverPids(driver.pid); // 随便塞
       driver.on('message', (data) => {
         if (data.action === 'compiled' || data.action === 'complete') { // eslint send complete action
           this.setState({

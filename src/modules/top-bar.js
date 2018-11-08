@@ -39,6 +39,23 @@ function init() {
   const menu = new nw.Menu({
     type: 'menubar'
   });
+  // Window
+  const winSubmenu = new nw.Menu();
+  winSubmenu.append(new nw.MenuItem({
+    label: 'New',
+    click: () => {
+      nw.Window.open('src/index.html', {
+        width: 950,
+        min_width: 800,
+        min_height: 450,
+        height: 600,
+        new_instance: true
+      }, (win) => {
+        console.log('Initial create');
+      });
+    }
+  }));
+  // Help
   const helpSubmenu = new nw.Menu();
   helpSubmenu.append(new nw.MenuItem({
     label: 'Upgrade',
@@ -115,6 +132,11 @@ function init() {
         onOk() { }
       });
     }
+  }));
+
+  menu.append(new nw.MenuItem({
+    label: 'Window',
+    submenu: winSubmenu
   }));
 
   menu.append(new nw.MenuItem({

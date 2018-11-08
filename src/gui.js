@@ -9,12 +9,14 @@ const {
   enableDevMode
 } = require('./deps/env');
 const portal = require('./panes/portal');
-const terminate = require('terminate');
+// const terminate = require('terminate');
 const {
   withTopBarProvider
 } = require('./modules/top-bar.js');
 const {
-  fetchRemotePkgJson
+  fetchRemotePkgJson,
+  getDriverPids,
+  terminatePids
 } = require('./deps/helper');
 const {
   notification
@@ -24,14 +26,18 @@ const pkgJson = require('../package.json');
 let win = nw.Window.get();
 win.on('close', function () {
   win = null;
-  terminate(process.pid, (err) => {
-    if (err) { // you will get an error if you did not supply a valid process.pid
-      console.error(`Something is wrong, may you kill nw process manually`);
-    } else {
-      console.log('done'); // terminating the Processes succeeded.
-    }
+  const pids = getDriverPids();
+  terminatePids(pids, () => {
     this.close(true); // really close
   });
+  // terminate(process.pid, (err) => {
+  //   if (err) { // you will get an error if you did not supply a valid process.pid
+  //     console.error(`Something is wrong, may you kill nw process manually`);
+  //   } else {
+  //     console.log('done'); // terminating the Processes succeeded.
+  //   }
+  //   this.close(true); // really close
+  // });
 });
 enableDevMode(win);
 

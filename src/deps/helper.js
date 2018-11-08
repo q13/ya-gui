@@ -9,6 +9,7 @@ const request = require('request');
 const {
   spawnSync
 } = require('child_process');
+const terminate = require('terminate');
 const {
   remotePkgUrl
 } = require('./config');
@@ -61,6 +62,30 @@ const getNodeLibBin = () => {
   return bin;
 };
 
+var driverPids = []; // Storage driver pid
+const getDriverPids = () => {
+  return driverPids.map(v => v);
+};
+const pushDriverPids = (pid) => {
+  driverPids.push(pid);
+};
+const terminatePids = (pids, callback) => {
+  pids = [].concat(pids || []);
+  if (pids.length) {
+    Promise.all(pids.map((pid) => {
+      return new Promise((resolve) => {
+        terminate(pid, () => {
+          resolve(true);
+        });
+      });
+    })).then(() => {
+      callback && callback();
+    });
+  } else {
+    callback && callback();
+  }
+};
+
 module.exports = {
   /**
    * 判断是否处于开发态
@@ -111,5 +136,8 @@ module.exports = {
   systermNodeVersion,
   getNodeLibName,
   getNodeLibUri,
-  getNodeLibBin
+  getNodeLibBin,
+  getDriverPids,
+  pushDriverPids,
+  terminatePids
 };

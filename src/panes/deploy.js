@@ -409,7 +409,7 @@ class Pane extends React.Component {
           stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]
         });
       } else if (type === 'test') {
-        driver = spawn(nodeLibBin, [yaCommand, 'test', this.projectPath], {
+        driver = spawn(nodeLibBin, [yaCommand, 'test', this.projectPath, '--mode', 'development'], {
           cwd: this.projectPath, // TODO://!important: babel-plugin-istanbul依赖process.cwd()获取正确的cwd地址，参见ya-driver/node_modules/babel-plugin-istanbul/lib/index.js 第30行
           // silent: true
           stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]

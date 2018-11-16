@@ -25,6 +25,9 @@ const terminate = require('terminate');
 const {
   Comp: PkgForm
 } = require('../modules/pkg-form');
+const {
+  getNodeLibBin
+} = require('../deps/helper');
 
 const confirm = Modal.confirm;
 
@@ -114,6 +117,7 @@ class Pane extends React.Component {
           }
         },
         onSubmit: (values) => {
+          const nodeLibBin = getNodeLibBin();
           const {
             outputPath
           } = state;
@@ -128,7 +132,7 @@ class Pane extends React.Component {
             const doer = () => {
               const run = () => {
                 fsExtra.ensureDirSync(projectPath);
-                this.createEngine = spawn('node', [yaCommand, 'create', projectPath, '--force'], {
+                this.createEngine = spawn(nodeLibBin, [yaCommand, 'create', projectPath, '--force'], {
                   // silent: true
                   stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]
                 });
@@ -254,8 +258,9 @@ class Pane extends React.Component {
       return;
     }
     const installEngine = this.installEngine;
+    const nodeLibBin = getNodeLibBin();
     const run = () => {
-      this.installEngine = spawn('node', [yaCommand, 'deps', state.projectPath], {
+      this.installEngine = spawn(nodeLibBin, [yaCommand, 'deps', state.projectPath], {
         // silent: true
         stdio: ['pipe', 'pipe', 'pipe', 'ipc']
       });

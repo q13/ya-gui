@@ -22,6 +22,7 @@ const fsExtra = require('fs-extra');
 const fs = require('fs');
 const { spawn } = require('child_process');
 const terminate = require('terminate');
+const os = require('os');
 const {
   Comp: PkgForm
 } = require('../modules/pkg-form');
@@ -30,6 +31,7 @@ const {
 } = require('../deps/helper');
 
 const confirm = Modal.confirm;
+const osType = os.type();
 
 class Pane extends React.Component {
   constructor(props) {
@@ -252,6 +254,10 @@ class Pane extends React.Component {
   }
   handleDepsInstall() {
     // message.info('Wait for implement');
+    if (osType === 'Darwin') {
+      message.info('Sorry, macOS need install dependencies manually');
+      return;
+    }
     const state = this.state;
     if (!state.projectPath) {
       message.error(`The project path is blank`);

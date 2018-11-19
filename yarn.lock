@@ -10712,9 +10712,9 @@ y18n@^4.0.0:
   integrity sha1-le+U+F7MgdAHwmThkKEg8KPIVms=
 
 ya-driver@^1.0.0:
-  version "1.7.1"
-  resolved "http://registry.npm.taobao.org/ya-driver/download/ya-driver-1.7.1.tgz#044b22ef84dee8587b15b34ac4bc79105c7998b3"
-  integrity sha1-BEsi74Te6Fh7FbNKxLx5EFx5mLM=
+  version "1.7.2"
+  resolved "http://registry.npm.taobao.org/ya-driver/download/ya-driver-1.7.2.tgz#88f3d054c84dca7ba4e3014e07ac0dd23ad15916"
+  integrity sha1-iPPQVMhNynuk4wFOB6wN0jrRWRY=
   dependencies:
     "@babel/core" "7.0.0"
     "@babel/plugin-proposal-class-properties" "7.0.0"

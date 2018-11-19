@@ -43,6 +43,7 @@ class Pane extends React.Component {
       },
       deployStatus: '', // doing, success, error
       buildStatus: '',
+      buildLocalStatus: '',
       accStatus: '',
       eslintStatus: '',
       testStatus: ''
@@ -197,7 +198,17 @@ class Pane extends React.Component {
               style: {
                 marginRight: '8px'
               }
-            }, 'Build test'),
+            }, 'Build cloud test'),
+            e(Button, {
+              type: 'primary',
+              loading: state.buildLocalStatus === 'doing',
+              onClick: () => {
+                this.handleDriver('buildLocal');
+              },
+              style: {
+                marginRight: '8px'
+              }
+            }, 'Build local'),
             e(Button, {
               type: 'primary',
               loading: state.eslintStatus === 'doing',
@@ -224,12 +235,13 @@ class Pane extends React.Component {
                 this.setState({
                   deployStatus: '',
                   buildStatus: '',
+                  buildLocalStatus: '',
                   accStatus: '',
                   eslintStatus: '',
                   testStatus: ''
                 });
                 // 尝试终止driver
-                ['deploy', 'build', 'acc', 'eslint', 'test'].forEach((type) => {
+                ['deploy', 'build', 'buildLocal', 'acc', 'eslint', 'test'].forEach((type) => {
                   const driver = this[`${type}Driver`];
                   if (driver) {
                     terminate(driver.pid, function (err) {
@@ -249,6 +261,7 @@ class Pane extends React.Component {
   initLogger() {
     const deployPath = path.resolve(__dirname, '../deploy.html');
     const buildPath = path.resolve(__dirname, '../build.html');
+    const buildLocalPath = path.resolve(__dirname, '../build.html');
     const accPath = path.resolve(__dirname, '../acc.html');
     const eslintPath = path.resolve(__dirname, '../eslint.html');
     const testPath = path.resolve(__dirname, '../test.html');
@@ -271,6 +284,9 @@ class Pane extends React.Component {
       id: 'build',
       filePath: buildPath
     }, {
+      id: 'build-local',
+      filePath: buildLocalPath
+    }, {
       id: 'acc',
       filePath: accPath
     }, {
@@ -288,12 +304,14 @@ class Pane extends React.Component {
     webviewContainerElt.innerHTML = htmlStr;
     const deploy = document.getElementById('deploy');
     const build = document.getElementById('build');
+    const buildLocal = document.getElementById('build-local');
     const acc = document.getElementById('acc');
     const eslint = document.getElementById('eslint');
     const test = document.getElementById('test');
 
     this.deploy = deploy;
     this.build = build;
+    this.buildLocal = buildLocal;
     this.acc = acc;
     this.eslint = eslint;
     this.test = test;
@@ -309,9 +327,15 @@ class Pane extends React.Component {
       }
     }));
     logSubmenu.append(new nw.MenuItem({
-      label: 'Build',
+      label: 'Build cloud',
       click: () => {
         this.build.showDevTools(true);
+      }
+    }));
+    logSubmenu.append(new nw.MenuItem({
+      label: 'Build local',
+      click: () => {
+        this.buildLocal.showDevTools(true);
       }
     }));
     logSubmenu.append(new nw.MenuItem({
@@ -395,6 +419,11 @@ class Pane extends React.Component {
         });
       } else if (type === 'build') {
         driver = spawn(nodeLibBin, [yaCommand, 'build', this.projectPath, '--app-env', 'local'], {
+          // silent: true
+          stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]
+        });
+      } else if (type === 'buildLocal') {
+        driver = spawn(nodeLibBin, [yaCommand, 'build', this.projectPath, '--app-env', 'local', '--sdk'], {
           // silent: true
           stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]
         });

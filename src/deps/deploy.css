@@ -1,0 +1,14 @@
+/**
+ * Pane deploy
+ */
+#pane-deploy-application-viewer {
+  height: 25vh;
+  overflow: auto;
+  padding: 8px;
+  background: #f2f4f5;
+  margin: 0 24px;
+}
+#pane-deploy-application-viewer ul{
+  margin: 0;
+  list-style: none;
+}

@@ -15,7 +15,8 @@ const {
   Button,
   Row,
   Col,
-  message
+  message,
+  Icon
 } = require('antd');
 const {
   capitalize
@@ -46,8 +47,10 @@ class Pane extends React.Component {
       buildLocalStatus: '',
       accStatus: '',
       eslintStatus: '',
-      testStatus: ''
+      testStatus: '',
+      appCfgReloadStatus: ''
     };
+    this.handleAppCfgReload = this.handleAppCfgReload.bind(this);
   }
   shouldComponentUpdate(nextProps, nextState) {
     if (JSON.stringify(nextProps) === JSON.stringify(this.props) && this.state === nextState) {
@@ -62,10 +65,15 @@ class Pane extends React.Component {
     if (profile.lastPkgPath) {
       this.setPkgJson(profile.lastPkgPath);
     }
+    this.renderApplicationCfg();
+  }
+  componentDidUpdate() {
+    this.renderApplicationCfg();
   }
   render() {
     const state = this.state;
     const pkgFields = state.pkgFields;
+    const appCfgReloadStatus = state.appCfgReloadStatus;
     const pkgActionDisabled = this.pkgActionDisabled;
     const {
       pkgFilePath
@@ -150,6 +158,26 @@ class Pane extends React.Component {
           }
         }
       })),
+      e('div', {
+        style: {
+          position: 'relative'
+        }
+      }, ...[e('div', {
+        style: {
+          position: 'absolute',
+          top: '-2em',
+          left: '24px'
+        }
+      }, ...['Application configuration：', e(Icon, {
+        type: !appCfgReloadStatus ? 'reload' : 'loading',
+        style: {
+          fontSize: '0.8em',
+          cursor: 'pointer'
+        },
+        onClick: this.handleAppCfgReload
+      })]), e('div', {
+        id: 'pane-deploy-application-viewer'
+      })]),
       e('div', {
         style: {
           position: 'absolute',
@@ -381,6 +409,39 @@ class Pane extends React.Component {
         version: pkgJson.version,
         description: pkgJson.description
       }
+    });
+  }
+  /**
+   * Render the project application configs
+   */
+  renderApplicationCfg() {
+    const state = this.state;
+    const pkgFilePath = state.pkgFilePath;
+    const viewerElt = document.getElementById('pane-deploy-application-viewer');
+    viewerElt.innerHTML = '';
+    if (pkgFilePath) {
+      const pkgJson = fsExtra.readJsonSync(pkgFilePath, { throws: false });
+      if (pkgJson) {
+        const application = pkgJson.application;
+        const attachElt = document.createElement('div');
+        viewerElt.appendChild(attachElt);
+        window.jsonTree.create(application, attachElt);
+      }
+    }
+  }
+  /**
+   * Reload the applicaiton configs
+   */
+  handleAppCfgReload() {
+    this.setState({
+      appCfgReloadStatus: 'loading'
+    }, () => {
+      this.renderApplicationCfg();
+      setTimeout(() => {
+        this.setState({
+          appCfgReloadStatus: ''
+        });
+      }, 600);
     });
   }
   /**

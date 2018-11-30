@@ -19,8 +19,12 @@ open ya-gui.app
 ```
 或者双击*ya-gui.app*应用打开。
 
+### Create project
+
+<img alt="图示" width="800" src="https://raw.githubusercontent.com/q13/ya-gui/master/doc/images/Snipaste_2018-11-30_14-27-30.png" />
+
 ### Deploy & Build
 
-<img alt="图示" width="800" src="https://raw.githubusercontent.com/q13/ya-gui/master/doc/images/2018-10-16_11-00-33.png" />
+<img alt="图示" width="800" src="https://raw.githubusercontent.com/q13/ya-gui/master/doc/images/Snipaste_2018-11-30_14-35-09.png" />
 
 终端模式下在项目根目录里执行对应如图命令即可（和原打包命令一致）。

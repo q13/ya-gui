@@ -48,6 +48,7 @@ class Pane extends React.Component {
       accStatus: '',
       eslintStatus: '',
       testStatus: '',
+      apiStatus: '',
       appCfgReloadStatus: ''
     };
     this.handleAppCfgReload = this.handleAppCfgReload.bind(this);
@@ -252,8 +253,18 @@ class Pane extends React.Component {
               loading: state.testStatus === 'doing',
               onClick: () => {
                 this.handleDriver('test');
+              },
+              style: {
+                marginRight: '8px'
               }
-            }, 'Unit testing')
+            }, 'Unit testing'),
+            e(Button, {
+              type: 'primary',
+              loading: state.apiStatus === 'doing',
+              onClick: () => {
+                this.handleDriver('api');
+              }
+            }, 'Generate API docs')
           ]),
           e(Col, {}, ...[
             e(Button, {
@@ -266,10 +277,11 @@ class Pane extends React.Component {
                   buildLocalStatus: '',
                   accStatus: '',
                   eslintStatus: '',
-                  testStatus: ''
+                  testStatus: '',
+                  apiStatus: ''
                 });
                 // 尝试终止driver
-                ['deploy', 'build', 'buildLocal', 'acc', 'eslint', 'test'].forEach((type) => {
+                ['deploy', 'build', 'buildLocal', 'acc', 'eslint', 'test', 'api'].forEach((type) => {
                   const driver = this[`${type}Driver`];
                   if (driver) {
                     terminate(driver.pid, function (err) {
@@ -293,6 +305,7 @@ class Pane extends React.Component {
     const accPath = path.resolve(__dirname, '../acc.html');
     const eslintPath = path.resolve(__dirname, '../eslint.html');
     const testPath = path.resolve(__dirname, '../test.html');
+    const apiPath = path.resolve(__dirname, '../api.html');
     let webviewContainerElt = document.getElementById('webview-container');
     if (!webviewContainerElt) {
       webviewContainerElt = document.createElement('div');
@@ -323,6 +336,9 @@ class Pane extends React.Component {
     }, {
       id: 'test',
       filePath: testPath
+    }, {
+      id: 'api',
+      filePath: apiPath
     }].forEach(({
       id,
       filePath
@@ -336,6 +352,7 @@ class Pane extends React.Component {
     const acc = document.getElementById('acc');
     const eslint = document.getElementById('eslint');
     const test = document.getElementById('test');
+    const api = document.getElementById('api');
 
     this.deploy = deploy;
     this.build = build;
@@ -343,6 +360,7 @@ class Pane extends React.Component {
     this.acc = acc;
     this.eslint = eslint;
     this.test = test;
+    this.api = api;
   }
   initMenu() {
     const props = this.props;
@@ -382,6 +400,12 @@ class Pane extends React.Component {
       label: 'Unit testing',
       click: () => {
         this.test.showDevTools(true);
+      }
+    }));
+    logSubmenu.append(new nw.MenuItem({
+      label: 'api',
+      click: () => {
+        this.api.showDevTools(true);
       }
     }));
     // Need assign
@@ -504,25 +528,59 @@ class Pane extends React.Component {
           // silent: true
           stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]
         });
+      } else if (type === 'api') {
+        driver = spawn(nodeLibBin, [yaCommand, 'api', this.projectPath], {
+          // silent: true
+          stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]
+        });
       }
       pushDriverPids(driver.pid); // 随便塞
       driver.on('message', (data) => {
-        if (data.action === 'compiled' || data.action === 'complete') { // eslint send complete action
+        if (type === 'api') {
           this.setState({
             [`${type}Status`]: 'success'
           });
-          if (type === 'build') {
+          if (data.action === 'initialized') {
             this.props.onPanePipe({
-              action: 'analyzerCompleted'
-            });
-          }
-          if (type === 'test') {
-            this.props.onPanePipe({
-              action: 'testCompleted',
+              action: 'apiInitialized',
               data: {
-                projectPath: this.projectPath
+                projectPath: this.projectPath,
+                templateUri: data.data.templateUri
               }
             });
+          } else if (data.action === 'completed') {
+            this.props.onPanePipe({
+              action: 'apiCompleted',
+              data: {
+                projectPath: this.projectPath,
+                templateUri: data.data.templateUri
+              }
+            });
+          }
+        } else {
+          if (data.action === 'compiled' || data.action === 'complete') { // eslint send complete action
+            this.setState({
+              [`${type}Status`]: 'success'
+            });
+            if (type === 'build') {
+              this.props.onPanePipe({
+                action: 'analyzerCompleted'
+              });
+            } else if (type === 'test') {
+              this.props.onPanePipe({
+                action: 'testCompleted',
+                data: {
+                  projectPath: this.projectPath
+                }
+              });
+            } else if (type === 'api') {
+              this.props.onPanePipe({
+                action: 'apiCompleted',
+                data: {
+                  projectPath: this.projectPath
+                }
+              });
+            }
           }
         }
       });
@@ -556,7 +614,13 @@ class Pane extends React.Component {
   }
   get pkgActionDisabled() {
     const state = this.state;
-    return state.deployStatus === 'doing' || state.buildStatus === 'doing' || state.accStatus === 'doing';
+    return state.deployStatus === 'doing' ||
+      state.buildStatus === 'doing' ||
+      state.accStatus === 'doing' ||
+      state.eslintStatus === 'doing' ||
+      state.buildLocalStatus === 'doing' ||
+      state.testStatus === 'doing' ||
+      state.apiStatus === 'doing';
   }
 }
 

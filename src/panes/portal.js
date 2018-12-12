@@ -3,7 +3,8 @@
  */
 const {
   React,
-  e
+  e,
+  profilePath
 } = require('../deps/env');
 const {
   Row,
@@ -15,11 +16,13 @@ const {
 const {
   withTopBarConsumer
 } = require('../modules/top-bar.js');
+const fsExtra = require('fs-extra');
+const path = require('path');
 
 class Pane extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
+    const state = {
       panes: [{
         key: 'create',
         label: 'Create',
@@ -39,19 +42,33 @@ class Pane extends React.Component {
         isActive: false,
         Pane: require('./analyzer').Pane
       }, {
-        key: 'coverage',
-        label: 'Code coverage',
-        icon: 'deployment-unit',
+        key: 'api',
+        label: 'API documentation',
+        icon: 'read',
         isActive: false,
-        Pane: require('./coverage').Pane
+        Pane: require('./api').Pane
       }].map((item) => {
         return {
           ...item,
           Pane: withTopBarConsumer(item.Pane)
         }
       }),
-      codeCoverageReporterPath: '' // current code coverage reporter path
+      codeCoverageReporterPath: '', // current code coverage reporter path
+      apiPath: '' // API documentation
     };
+    // 设置默认api path
+    if (profilePath) {
+      const profile = fsExtra.readJsonSync(profilePath, { throws: false });
+      if (profile) {
+        const lastPkgPath = profile.lastPkgPath;
+        const pkgJson = fsExtra.readJsonSync(lastPkgPath);
+        if (pkgJson) {
+          const apiOutputName = ((pkgJson.application || {}).jsdoc || {}).destination || 'api';
+          state.apiPath = path.resolve(path.dirname(lastPkgPath), `./${apiOutputName}/${pkgJson.name}/${pkgJson.version}/index.html`);
+        }
+      }
+    }
+    this.state = state;
   }
   render() {
     const state = this.state;
@@ -99,11 +116,23 @@ class Pane extends React.Component {
               this.setState({
                 codeCoverageReporterPath: `file://${encodeURI(projectPath.replace(/\\/g, '/'))}/coverage/report/index.html`
               });
+            } else if (action === 'apiInitialized') {
+              this.activePane('api');
+            } else if (action === 'apiCompleted') {
+              console.log(1111);
+              const {
+                templateUri
+              } = data;
+              this.setState({
+                apiPath: `file://${encodeURI(templateUri.replace(/\\/g, '/'))}`
+              });
             }
           }
         };
         if (pane.key === 'coverage') {
           paneProps.reportPath = state.codeCoverageReporterPath;
+        } else if (pane.key === 'api') {
+          paneProps.apiPath = state.apiPath;
         }
         return e('div', {
           key: pane.key,

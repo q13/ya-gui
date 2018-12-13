@@ -133,6 +133,30 @@ module.exports = {
       spaces: 2
     });
   },
+  /**
+   * Get API template uri
+   * @param {string} pkgJsonPath - API template uri
+   */
+  getApiTemplateUri(pkgJsonPath) {
+    const pkgJson = fsExtra.readJsonSync(pkgJsonPath);
+    if (pkgJson) {
+      const apiOutputName = ((pkgJson.application || {}).jsdoc || {}).destination || 'api';
+      return path.resolve(path.dirname(pkgJsonPath), `./${apiOutputName}/${pkgJson.name}/${pkgJson.version}/index.html`);
+    }
+    return '';
+  },
+  /**
+   * Get the dev mode access url
+   * @param {string} projectPath - Project path
+   */
+  getDevUri(projectPath) {
+    const pkgJson = fsExtra.readJsonSync(path.resolve(projectPath, './package.json'));
+    if (pkgJson) {
+      const devPort = (pkgJson.application || {}).devPort || 8080;
+      return `http://127.0.0.1:${devPort}/${pkgJson.name}/${pkgJson.version}/#/`;
+    }
+    return '';
+  },
   systermNodeVersion,
   getNodeLibName,
   getNodeLibUri,

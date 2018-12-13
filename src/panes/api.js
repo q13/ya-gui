@@ -10,15 +10,30 @@ const {
   Row,
   Col
 } = require('antd');
+const fsExtra = require('fs-extra');
+const path = require('path');
+const {
+  getDevUri
+} = require('../deps/helper');
 
 class Pane extends React.Component {
   componentDidUpdate() {
     this.reload();
   }
+  shouldComponentUpdate(nextProps) {
+    if (this.props.apiPath !== nextProps.apiPath) {
+      return true;
+    } else {
+      this.reload();
+      return false;
+    }
+  }
   render() {
     const props = this.props;
+    const iframeKey = new Date() / 1;
     const {
-      apiPath = ''
+      apiPath = '',
+      projectPath = ''
     } = props;
     return e('div', {}, ...[
       e(Row, {
@@ -53,7 +68,8 @@ class Pane extends React.Component {
         }
       }, ...[
         e('iframe', {
-          src: `${apiPath}`,
+          key: iframeKey,
+          src: `${apiPath}?v=${iframeKey}`,
           ref: 'frame',
           frameBorder: 0,
           scrolling: 'no',
@@ -62,15 +78,41 @@ class Pane extends React.Component {
             height: 'calc(100vh - 64px)'
           },
           onLoad: () => {
-            const ifrDoc = this.refs.frame.contentWindow.document.documentElement;
-            const ifrBody = this.refs.frame.contentWindow.document.body;
+            const ifrWin = this.refs.frame.contentWindow;
+            const ifrDoc = ifrWin.document.documentElement;
+            const ifrBody = ifrWin.document.body;
             // iframe内部加入滚动条
             ifrDoc.style.overflow = 'auto';
             ifrBody.style.overflow = 'auto';
+            ifrBody.addEventListener('click', (evt) => {
+              const elts = [evt.target, evt.target.parentNode];
+              if (elts.some((elt) => {
+                if (elt.tagName.toLowerCase() === 'a') {
+                  const href = elt.getAttribute('href');
+                  if (href.slice(0, 9) === 'http://#/') {
+                    ifrWin.open(getDevUri(projectPath) + href.slice(9));
+                    return true;
+                  }
+                }
+              })) {
+                evt.preventDefault();
+              }
+            });
           }
         })
       ])
     ]);
+  }
+  /**
+   * Get project path
+   * @param {string} projectPath - Project path
+   */
+  getProjectPkgJson(projectPath) {
+    if (projectPath) {
+      const pkgJson = fsExtra.readJsonSync(path.resolve(projectPath, './package.json'), { throws: false });
+      return pkgJson;
+    }
+    return null;
   }
   reload() {
     this.refs.frame.contentWindow.location.reload();

@@ -16,6 +16,9 @@ const {
 const {
   withTopBarConsumer
 } = require('../modules/top-bar.js');
+const {
+  getApiTemplateUri
+} = require('../deps/helper');
 const fsExtra = require('fs-extra');
 const path = require('path');
 
@@ -42,6 +45,12 @@ class Pane extends React.Component {
         isActive: false,
         Pane: require('./analyzer').Pane
       }, {
+        key: 'coverage',
+        label: 'Code coverage',
+        icon: 'deployment-unit',
+        isActive: false,
+        Pane: require('./coverage').Pane
+      }, {
         key: 'api',
         label: 'API documentation',
         icon: 'read',
@@ -54,18 +63,16 @@ class Pane extends React.Component {
         }
       }),
       codeCoverageReporterPath: '', // current code coverage reporter path
-      apiPath: '' // API documentation
+      apiPath: '', // API documentation
+      projectPath: '' // Current project path
     };
     // 设置默认api path
     if (profilePath) {
       const profile = fsExtra.readJsonSync(profilePath, { throws: false });
       if (profile) {
         const lastPkgPath = profile.lastPkgPath;
-        const pkgJson = fsExtra.readJsonSync(lastPkgPath);
-        if (pkgJson) {
-          const apiOutputName = ((pkgJson.application || {}).jsdoc || {}).destination || 'api';
-          state.apiPath = path.resolve(path.dirname(lastPkgPath), `./${apiOutputName}/${pkgJson.name}/${pkgJson.version}/index.html`);
-        }
+        state.apiPath = getApiTemplateUri(lastPkgPath);
+        state.projectPath = path.dirname(lastPkgPath);
       }
     }
     this.state = state;
@@ -105,6 +112,7 @@ class Pane extends React.Component {
         }
       }, panes.map((pane) => {
         let paneProps = {
+          ref: pane.key,
           onPanePipe: ({ action, data }) => {
             if (action === 'analyzerCompleted') {
               this.activePane('analyzer');
@@ -117,13 +125,22 @@ class Pane extends React.Component {
                 codeCoverageReporterPath: `file://${encodeURI(projectPath.replace(/\\/g, '/'))}/coverage/report/index.html`
               });
             } else if (action === 'apiInitialized') {
-              this.activePane('api');
-            } else if (action === 'apiCompleted') {
-              console.log(1111);
               const {
+                projectPath,
+                templateUri
+              } = data;
+              this.activePane('api');
+              this.setState({
+                projectPath,
+                apiPath: `file://${encodeURI(templateUri.replace(/\\/g, '/'))}`
+              });
+            } else if (action === 'apiCompleted') {
+              const {
+                projectPath,
                 templateUri
               } = data;
               this.setState({
+                projectPath,
                 apiPath: `file://${encodeURI(templateUri.replace(/\\/g, '/'))}`
               });
             }
@@ -133,6 +150,7 @@ class Pane extends React.Component {
           paneProps.reportPath = state.codeCoverageReporterPath;
         } else if (pane.key === 'api') {
           paneProps.apiPath = state.apiPath;
+          paneProps.projectPath = state.projectPath;
         }
         return e('div', {
           key: pane.key,

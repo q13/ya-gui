@@ -29,7 +29,8 @@ const {
 } = require('../modules/pkg-form');
 const {
   getNodeLibBin,
-  pushDriverPids
+  pushDriverPids,
+  getApiTemplateUri
 } = require('../deps/helper');
 
 class Pane extends React.Component {
@@ -52,6 +53,7 @@ class Pane extends React.Component {
       appCfgReloadStatus: ''
     };
     this.handleAppCfgReload = this.handleAppCfgReload.bind(this);
+    this.handleKill = this.handleKill.bind(this);
   }
   shouldComponentUpdate(nextProps, nextState) {
     if (JSON.stringify(nextProps) === JSON.stringify(this.props) && this.state === nextState) {
@@ -101,6 +103,9 @@ class Pane extends React.Component {
             if (basename !== 'package.json') {
               message.error('You need select a package.json file in project');
             } else {
+              // Kill all process
+              this.handleKill();
+              // Set form data
               this.setPkgJson(filePath);
               // Save the last package.json path
               const profile = fsExtra.readJsonSync(profilePath, { throws: false }) || {};
@@ -109,6 +114,13 @@ class Pane extends React.Component {
                 lastPkgPath: filePath
               }, {
                 spaces: 2
+              });
+              // 触发 API documentation 重新刷新
+              this.props.onPanePipe({
+                action: 'apiCompleted',
+                data: {
+                  templateUri: getApiTemplateUri(filePath)
+                }
               });
             }
           }
@@ -227,7 +239,7 @@ class Pane extends React.Component {
               style: {
                 marginRight: '8px'
               }
-            }, 'Build cloud test'),
+            }, 'Build simulate'),
             e(Button, {
               type: 'primary',
               loading: state.buildLocalStatus === 'doing',
@@ -237,7 +249,7 @@ class Pane extends React.Component {
               style: {
                 marginRight: '8px'
               }
-            }, 'Build local'),
+            }, 'Build html'),
             e(Button, {
               type: 'primary',
               loading: state.eslintStatus === 'doing',
@@ -271,26 +283,7 @@ class Pane extends React.Component {
               type: 'danger',
               ghost: true,
               onClick: () => {
-                this.setState({
-                  deployStatus: '',
-                  buildStatus: '',
-                  buildLocalStatus: '',
-                  accStatus: '',
-                  eslintStatus: '',
-                  testStatus: '',
-                  apiStatus: ''
-                });
-                // 尝试终止driver
-                ['deploy', 'build', 'buildLocal', 'acc', 'eslint', 'test', 'api'].forEach((type) => {
-                  const driver = this[`${type}Driver`];
-                  if (driver) {
-                    terminate(driver.pid, function (err) {
-                      if (err) { // you will get an error if you did not supply a valid process.pid
-                        console.log('Oopsy: ' + err); // handle errors in your preferred way.
-                      }
-                    });
-                  }
-                });
+                this.handleKill();
               }
             }, 'Kill')
           ])
@@ -403,7 +396,7 @@ class Pane extends React.Component {
       }
     }));
     logSubmenu.append(new nw.MenuItem({
-      label: 'api',
+      label: 'API',
       click: () => {
         this.api.showDevTools(true);
       }
@@ -469,6 +462,31 @@ class Pane extends React.Component {
     });
   }
   /**
+   * Kill all process
+   */
+  handleKill() {
+    this.setState({
+      deployStatus: '',
+      buildStatus: '',
+      buildLocalStatus: '',
+      accStatus: '',
+      eslintStatus: '',
+      testStatus: '',
+      apiStatus: ''
+    });
+    // 尝试终止driver
+    ['deploy', 'build', 'buildLocal', 'acc', 'eslint', 'test', 'api'].forEach((type) => {
+      const driver = this[`${type}Driver`];
+      if (driver) {
+        terminate(driver.pid, function (err) {
+          if (err) { // you will get an error if you did not supply a valid process.pid
+            console.log('Oopsy: ' + err); // handle errors in your preferred way.
+          }
+        });
+      }
+    });
+  }
+  /**
    * Handle driver run
    * @param {String} type - deploy & build
    */
@@ -529,7 +547,7 @@ class Pane extends React.Component {
           stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]
         });
       } else if (type === 'api') {
-        driver = spawn(nodeLibBin, [yaCommand, 'api', this.projectPath], {
+        driver = spawn(nodeLibBin, [yaCommand, 'api', this.projectPath, '--node', nodeLibBin], {
           // silent: true
           stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]
         });

@@ -92,6 +92,9 @@ class Pane extends React.Component {
                   if (href.slice(0, 9) === 'http://#/') {
                     ifrWin.open(getDevUri(projectPath) + href.slice(9));
                     return true;
+                  } else if (href.slice(0, 7) === 'http://' || href.slice(0, 8) === 'https://') {
+                    ifrWin.open(href);
+                    return true;
                   }
                 }
               })) {

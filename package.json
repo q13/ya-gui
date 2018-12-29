@@ -1,6 +1,6 @@
 {
   "name": "ya-gui",
-  "version": "0.0.1-beta.22",
+  "version": "0.0.1-beta.23",
   "description": "A GUI tool for ya framework",
   "main": "src/index.js",
   "scripts": {
